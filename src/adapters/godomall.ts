@@ -42,11 +42,11 @@ export class GodomallAdapter implements StoreAdapter {
   private cateNames = new Map<string, string>(); // cateCd → 의미있는 카테고리명
   private verified = false; // 고도몰 구조 검증 여부 (런타임 1회)
   private rateLimitMs: number;
-  private collectDetailImages: boolean; // OCR용 상세 이미지 수집 여부 (기본 off → 추가 요청 0)
+  private fetchDetail: boolean; // 상세페이지(goods_view) 1회 fetch 여부 — 설명이미지(OCR)+품절 감지용. 기본 off → 추가 요청 0
 
-  constructor(opts: { rateLimitMs?: number; collectDetailImages?: boolean } = {}) {
+  constructor(opts: { rateLimitMs?: number; fetchDetail?: boolean } = {}) {
     this.rateLimitMs = opts.rateLimitMs ?? 300; // 고도몰은 차단 약함 → 짧은 딜레이
-    this.collectDetailImages = opts.collectDetailImages ?? false;
+    this.fetchDetail = opts.fetchDetail ?? false;
   }
 
   /**
@@ -195,13 +195,18 @@ export class GodomallAdapter implements StoreAdapter {
       }
     }
 
-    // OCR 옵션 ON일 때만 상세페이지에서 설명 이미지(_DC) 수집 (없으면 추가 요청 0)
+    // fetchDetail ON일 때만 goods_view 1회 fetch → 설명이미지(OCR용) + 상품 단위 품절 (없으면 추가 요청 0)
     let detailImages: string[] | undefined;
-    if (this.collectDetailImages) {
+    let soldOut = false;
+    if (this.fetchDetail) {
       try {
-        detailImages = await this.fetchDetailImages(sourceUrl);
+        await this.sleep();
+        const html = await this.httpGet(sourceUrl);
+        const $ = cheerio.load(html);
+        detailImages = this.extractDetailImages(html, $);
+        soldOut = this.extractSoldOut($);
       } catch {
-        /* 상세 이미지 실패해도 상품 진행 (에러 격리) */
+        /* 상세 실패해도 상품 진행 (에러 격리) */
       }
     }
 
@@ -222,6 +227,7 @@ export class GodomallAdapter implements StoreAdapter {
       sellerTags: [],
       detailText: null,
       detailImages,
+      soldOut, // 상품 단위 품절 (구매 버튼 클래스 기반 — fetchDetail 시에만)
       naverMid: null,
       sourceUrl,
     };
@@ -232,16 +238,13 @@ export class GodomallAdapter implements StoreAdapter {
    * 고도몰 상세는 본문이 이미지라, 텍스트가 든 composite(_DC)를 우선 선택하고
    * 공용 안내/사이즈가이드/아이콘 이미지는 제외한다. 없으면 일반 상세 이미지로 폴백.
    */
-  private async fetchDetailImages(viewUrl: string): Promise<string[]> {
-    await this.sleep();
-    const html = await this.httpGet(viewUrl);
+  private extractDetailImages(html: string, $: cheerio.CheerioAPI): string[] {
     const urls = new Set<string>();
     // 1) 텍스트 composite(_DC)를 raw HTML에서 직접 추출 — m./www DOM 구조 차이에 강건
     //    (모바일은 #detail 컨테이너가 없어 셀렉터 의존이 깨짐 → 정규식이 안전)
     for (const m of html.matchAll(/https?:\/\/[^"')\s]+_DC\.(?:jpg|png|gif)/gi)) urls.add(m[0]);
     // 2) _DC가 없는 다른 고도몰 대비: 상세 컨테이너 이미지로 폴백 (공용 안내/아이콘 제외)
     if (urls.size === 0) {
-      const $ = cheerio.load(html);
       $('#detail img, .cont_detail img, #prdDetail img').each((_, im) => {
         const a = (im as any).attribs || {};
         let src = a.src || a['data-src'] || a['ec-data-src'] || a['data-original'] || '';
@@ -253,6 +256,15 @@ export class GodomallAdapter implements StoreAdapter {
       });
     }
     return [...urls];
+  }
+
+  /**
+   * 상품 단위 품절 감지 — 구매 버튼이 품절 상태로 바뀐 클래스로 판단(텍스트 카운트 X, 오탐 방지).
+   *   - 모바일: <a class="detail_prd_no_btn">품절  (정상은 detail_cart_btn/detail_order_btn)
+   *   - PC:     <button class="btn_add_soldout">품절  (정상은 btn_add_basket)
+   */
+  private extractSoldOut($: cheerio.CheerioAPI): boolean {
+    return $('.detail_prd_no_btn, .btn_add_soldout, .btn_soldout, [class*=goods_soldout]').length > 0;
   }
 
   /** 옵션 조합: layer_option.php POST → data-option-name="축1:축2" 파싱 */
@@ -268,9 +280,17 @@ export class GodomallAdapter implements StoreAdapter {
     $('[data-option-name]').each((_, el) => {
       const raw = $(el).attr('data-option-name') || '';
       if (!raw) return;
-      const names = raw.split(':').map((s) => s.trim()).filter(Boolean);
-      if (names.length === 0) return;
-      combos.push({ names, addPrice: 0, soldOut: false });
+      // 품절 감지(텍스트 마커만 — 재고 숫자 포맷은 불명확해 추측하지 않음).
+      const cls = ($(el).attr('class') || '') + ' ' + ($(el).attr('data-status') || '');
+      const soldOut = /품절|sold\s*out|soldout|일시품절/i.test(raw) || /soldout|out_of_stock|disabled/i.test(cls);
+      // 옵션명에서 품절 표기 제거 후 축 분리
+      const names = raw
+        .replace(/\(?\s*(일시)?품절\s*\)?/g, '')
+        .split(':')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (names.length === 0) return; // 빈옵션(주관식 입력형 등) 제외
+      combos.push({ names, addPrice: 0, soldOut });
     });
     return combos;
   }

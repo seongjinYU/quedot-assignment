@@ -41,7 +41,7 @@ async function main() {
     //    런타임에 고도몰 구조를 검증하는 fallback이므로 가장 마지막에 둔다.
     const adapters: StoreAdapter[] = [
       new NaverStoreAdapter(session),
-      new GodomallAdapter({ collectDetailImages: !!ocr }),
+      new GodomallAdapter({ fetchDetail: !!ocr }),
     ];
     const adapter = adapters.find((a) => a.matches(storeUrl));
     if (!adapter) throw new Error(`지원 어댑터 없음: ${storeUrl}`);

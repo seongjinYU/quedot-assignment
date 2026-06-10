@@ -21,6 +21,7 @@ export interface RawProduct {
   deliveryFee?: { base?: number; freeOver?: number; type?: string } | null;
   optionAxes?: string[]; // 옵션 축 이름 (groupName)
   optionCombos?: OptionCombo[]; // 옵션 조합 (펼침 대상)
+  soldOut?: boolean; // 상품 단위 품절/판매불가 (옵션 없는 상품도 감지)
   categoryPath?: string | null; // "식품>건강식품>영양제>오메가3"
   sellerTags?: string[];
   detailText?: string | null; // USP 소스 (상세 설명 텍스트)

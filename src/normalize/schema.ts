@@ -52,6 +52,7 @@ export interface NormalizedProduct {
     optionIndex?: number; // 옵션 펼침 시 조합 인덱스
     optionTotal?: number; // 해당 상품의 전체 옵션 조합 수
     optionAxes?: string[]; // 옵션 축 이름
+    optionAxisCount?: number; // 이 SKU의 옵션 축 수 (3축 추적 — 큐닷 2칸 제약 사례)
     note?: string; // 옵션 상한 초과 등 비고
     soldOut?: boolean;
     /** AI 필드의 실제 근거 유무 (validate가 환각 차단 판단에 사용) */

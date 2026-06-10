@@ -15,9 +15,33 @@ export interface QualityReport {
   totalRows: number; // SKU(옵션 펼침 후)
   fillRate: Record<string, { filled: number; rate: string; method: Record<string, number> }>;
   emptyReasons: Record<string, number>; // 공란 사유별 집계
-  validationIssues: { error: number; warn: number; byField: Record<string, number> };
+  // 검증 이슈: 필드별 + 유형별(실패 유형 분류)
+  validationIssues: { error: number; warn: number; byField: Record<string, number>; byType: Record<string, number> };
+  // 옵션 구조 통계 (엣지케이스 가시화)
+  options: {
+    soldOut: number; // 품절 SKU
+    singleProduct: number; // 옵션 없는 단일상품 SKU
+    axis1: number; // 1축 옵션
+    axis2: number; // 2축 옵션
+    axis3plus: number; // 3축+ (큐닷 2칸 제약 → option2 결합 사례)
+  };
   aiUsage: { enriched: number; ruleFallback: number };
 }
+
+// 이슈 유형 → 사람이 읽는 라벨
+const ISSUE_TYPE_LABEL: Record<string, string> = {
+  usp_hallucination: 'USP 환각 차단',
+  category_enum: '카테고리 7종 외 제거',
+  category_lowconf: '카테고리 저신뢰 축소',
+  option_cleanup: '옵션 텍스트 정리',
+  price_invalid: '비정상 가격 무효화',
+  price_inverted: '판매가>정가',
+  discount_range: '할인율 범위 밖',
+  discount_uncomputable: '할인율 계산 불가',
+  hashtag_cleanup: '해시태그 정리',
+  missing_name: '상품명 누락',
+  missing_image: '대표이미지 누락',
+};
 
 function isFilled(v: unknown): boolean {
   if (v == null) return false;
@@ -55,14 +79,27 @@ export function buildQualityReport(
     };
   }
 
-  // 검증 이슈 집계
-  const vi = { error: 0, warn: 0, byField: {} as Record<string, number> };
+  // 검증 이슈 집계 (필드별 + 유형별)
+  const vi = { error: 0, warn: 0, byField: {} as Record<string, number>, byType: {} as Record<string, number> };
   for (const issues of allIssues) {
     for (const i of issues) {
       if (i.level === 'error') vi.error++;
       else vi.warn++;
       vi.byField[i.field] = (vi.byField[i.field] ?? 0) + 1;
+      const t = (i as { type?: string }).type ?? 'unknown';
+      vi.byType[t] = (vi.byType[t] ?? 0) + 1;
     }
+  }
+
+  // 옵션 구조 통계 (품절·축수 — 엣지케이스 가시화)
+  const options = { soldOut: 0, singleProduct: 0, axis1: 0, axis2: 0, axis3plus: 0 };
+  for (const r of rows) {
+    if (r.meta.soldOut) options.soldOut++;
+    const ac = r.meta.optionAxisCount;
+    if (ac == null) options.singleProduct++;
+    else if (ac >= 3) options.axis3plus++;
+    else if (ac === 2) options.axis2++;
+    else options.axis1++;
   }
 
   // AI 사용 집계 (enrich된 행 vs fallback)
@@ -81,6 +118,7 @@ export function buildQualityReport(
     fillRate,
     emptyReasons,
     validationIssues: vi,
+    options,
     aiUsage: { enriched, ruleFallback },
   };
 }
@@ -95,7 +133,15 @@ export function printQualityReport(q: QualityReport): void {
     console.log(`  ${f.padEnd(15)} ${info.rate.padStart(6)} (${info.filled}/${q.totalRows})  [${methods}]`);
   }
   console.log(`\n[검증 이슈] error ${q.validationIssues.error} / warn ${q.validationIssues.warn}`);
-  for (const [f, c] of Object.entries(q.validationIssues.byField)) console.log(`  - ${f}: ${c}건`);
+  console.log(`  [유형별]`);
+  Object.entries(q.validationIssues.byType)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([t, c]) => console.log(`    ${(ISSUE_TYPE_LABEL[t] ?? t).padEnd(18)} ${c}건`));
+
+  const o = q.options;
+  console.log(`\n[옵션 구조] 단일상품 ${o.singleProduct} / 1축 ${o.axis1} / 2축 ${o.axis2} / 3축+ ${o.axis3plus} / 품절 ${o.soldOut}`);
+  if (o.axis3plus > 0) console.log(`  ⚠️ 3축+ ${o.axis3plus}건: 큐닷 option1/2(2칸) 제약 → option2에 결합`);
+
   console.log(`\n[AI 사용] openai enrich ${q.aiUsage.enriched}행 / rule fallback ${q.aiUsage.ruleFallback}행`);
   if (Object.keys(q.emptyReasons).length) {
     console.log(`\n[주요 공란 사유 Top]`);

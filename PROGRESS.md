@@ -57,9 +57,13 @@
   - provider(openai/rule/fallback) 경로 무관하게 최종 산출물은 반드시 관문 통과
 - [x] (옵션 견고성) **단일 축 옵션 결정적 처리** ✅ names 1개면 LLM 미호출→룰(결정적). 멀쩡한 단일 옵션을 LLM이 2칸으로 억지분해하다 토큰 중복(예: "드롭스/드롭스/오프너O")시키는 환각 차단. 다축만 LLM 재배치. (검증: 지니어스뉴 3조합 결정적 일치)
 - [x] (옵션 provenance 정직화) ✅ 옵션 라벨을 실제 경로 기준으로: 단일 축/rule-baseline→`deterministic`(룰 정규화), 다축+LLM→`ai`(다축 의미배치). 기존엔 단일 축도 `ai/openai`로 거짓표기되던 것 수정 (REFLECTION #5 정직성 원칙)
-- [ ] 8. 엣지케이스 처리 (품절·빈옵션·3축옵션·에러격리 강화)
-- [ ] 9. 엣지케이스 카탈로그 문서화 (raw→정규화 예시)
-- [ ] 10. 정제 품질 수치화 (성공률, 실패 유형 분류)
+- [x] 8. 엣지케이스 처리 ✅ 3축 추적(meta.optionAxisCount + 품질 카운트), **품절 양쪽 커버**:
+  - 네이버: 상품단위(productStatusType≠SALE — 옵션없는 단일상품도) + 옵션단위(usable/stock). 검증: phytonutri 2페이지 품절 4건 정확
+  - 고도몰: 상품단위(구매버튼 클래스 detail_prd_no_btn/btn_add_soldout — fetchDetail시) + 옵션 텍스트마커. 검증: 6873=품절·641=정상
+  - 빈옵션·주관식 제외 확인, 에러격리 기존 유지
+- [ ] 9. 엣지케이스 카탈로그 문서화 (raw→정규화 예시) — EDGE_CASES.md 최신화 필요(categoryPath·OCR 반영)
+- [x] 10. 정제 품질 수치화 ✅ ValidationIssue에 type 추가 → 품질리포트 **유형별 분류**(USP환각·가격이상·옵션정리 등) + **옵션 구조 통계**(단일/1·2·3축/품절). (검증: phytonutri 10상품 리포트 확인)
+  - ⚠️ 기존 output(kefii·happyland)은 옛 품질포맷 → 새 필드(byType·options) 반영하려면 재크롤 필요
 
 ### E. 가산점 (여유 시)
 - [ ] 11. lowest_price (네이버쇼핑 실조회, syncNvMid 매칭, 오탐 방지)
@@ -67,7 +71,7 @@
 ### F. 제출물 (필수)
 - [ ] 12. README (개요/실행법/기술선택/회고/샘플출력/필드별 처리설명)
 - [ ] 13. 시연 영상 ≤3분
-- [ ] 14. GitHub public repo
+- [x] 14. GitHub public repo ✅ https://github.com/seongjinYU/quedot-assignment (보안: session·env·도구폴더 제외 확인)
 - [ ] 15. (제출 시) 통장 사본 + 신분증
 
 ---

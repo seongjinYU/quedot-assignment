@@ -168,6 +168,9 @@ export class NaverStoreAdapter implements StoreAdapter {
       deliveryFee: null, // product-benefits로 보강 예정
       optionAxes,
       optionCombos,
+      // 상품 단위 품절: productStatusType이 SALE이 아니면 구매불가(OUTOFSTOCK/SUSPENSION 등)
+      // — 옵션 없는 단일상품도 잡힘(옵션 조합 usable만으론 놓침).
+      soldOut: !!(d.productStatusType && d.productStatusType !== 'SALE'),
       categoryPath: d.category?.wholeCategoryName ?? null,
       sellerTags: (d.seoInfo?.sellerTags ?? []).map((t: any) => t.text).filter(Boolean),
       // 상세 응답에 텍스트 본문이 있으면 사용(방어용). 한국 네이버 상세는 거의 이미지라 보통 null.

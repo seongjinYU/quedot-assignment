@@ -178,7 +178,9 @@ function buildRow(
       optionIndex: combo ? optionIndex : undefined,
       optionTotal: optionTotal || undefined,
       optionAxes: raw.optionAxes,
-      soldOut: combo?.soldOut,
+      optionAxisCount: combo ? combo.names.filter(Boolean).length : undefined,
+      // 품절: 상품 단위(raw.soldOut) 또는 이 옵션 조합 단위(combo.soldOut)
+      soldOut: !!(raw.soldOut || combo?.soldOut),
       basis,
     },
   };
