@@ -1,0 +1,28 @@
+node_modules/
+naver-session/
+.env
+.env.local
+*.log
+
+# 도구 내부 상태 (제출 무관)
+.bkit/
+.claude/
+
+# 인증 세션/쿠키
+cookies.txt
+
+# 정찰 임시 산출물 (재생성 가능 — 결론은 RECON_NOTES.md)
+*.html
+!docs/crawl-flow.html
+recon*.js
+recon*.cjs
+*_recon*.json
+recon_result.json
+preloaded_*.json
+detail_json.json
+list_recon.json
+option_recon.json
+
+# 개인 전략 문서 (제출 제외)
+큐닷_과제_전략.md
+큐닷_과제_실행계획.md

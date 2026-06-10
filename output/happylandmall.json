@@ -1,0 +1,1038 @@
+[
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "[해피랜드] 코벤트 민소 상하 H1321210",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000641/image/main/1000000641_main_04.jpg",
+      "option1": "노랑",
+      "option2": "100",
+      "consumer_price": 35000,
+      "sales_price": 35000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "코벤트민소상하",
+        "여름철의류",
+        "스트라이프패턴",
+        "동물캐릭터패치",
+        "민트",
+        "노랑",
+        "폴리에스터50",
+        "면50"
+      ],
+      "usp": "화사한 컬러 스트라이프 패턴의 민소매 상하복으로, 여름철 시원하게 입기 좋은 제품입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000641",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:37.042Z",
+      "optionIndex": 0,
+      "optionTotal": 8,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "[해피랜드] 코벤트 민소 상하 H1321210",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000641/image/main/1000000641_main_04.jpg",
+      "option1": "노랑",
+      "option2": "110",
+      "consumer_price": 35000,
+      "sales_price": 35000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "코벤트민소상하",
+        "여름철의류",
+        "스트라이프패턴",
+        "동물캐릭터패치",
+        "민트",
+        "노랑",
+        "폴리에스터50",
+        "면50"
+      ],
+      "usp": "화사한 컬러 스트라이프 패턴의 민소매 상하복으로, 여름철 시원하게 입기 좋은 제품입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000641",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:37.044Z",
+      "optionIndex": 1,
+      "optionTotal": 8,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "[해피랜드] 코벤트 민소 상하 H1321210",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000641/image/main/1000000641_main_04.jpg",
+      "option1": "노랑",
+      "option2": "80",
+      "consumer_price": 35000,
+      "sales_price": 35000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "코벤트민소상하",
+        "여름철의류",
+        "스트라이프패턴",
+        "동물캐릭터패치",
+        "민트",
+        "노랑",
+        "폴리에스터50",
+        "면50"
+      ],
+      "usp": "화사한 컬러 스트라이프 패턴의 민소매 상하복으로, 여름철 시원하게 입기 좋은 제품입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000641",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:37.044Z",
+      "optionIndex": 2,
+      "optionTotal": 8,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "[해피랜드] 코벤트 민소 상하 H1321210",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000641/image/main/1000000641_main_04.jpg",
+      "option1": "노랑",
+      "option2": "90",
+      "consumer_price": 35000,
+      "sales_price": 35000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "코벤트민소상하",
+        "여름철의류",
+        "스트라이프패턴",
+        "동물캐릭터패치",
+        "민트",
+        "노랑",
+        "폴리에스터50",
+        "면50"
+      ],
+      "usp": "화사한 컬러 스트라이프 패턴의 민소매 상하복으로, 여름철 시원하게 입기 좋은 제품입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000641",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:37.044Z",
+      "optionIndex": 3,
+      "optionTotal": 8,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "[해피랜드] 코벤트 민소 상하 H1321210",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000641/image/main/1000000641_main_04.jpg",
+      "option1": "민트",
+      "option2": "100",
+      "consumer_price": 35000,
+      "sales_price": 35000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "코벤트민소상하",
+        "여름철의류",
+        "스트라이프패턴",
+        "동물캐릭터패치",
+        "민트",
+        "노랑",
+        "폴리에스터50",
+        "면50"
+      ],
+      "usp": "화사한 컬러 스트라이프 패턴의 민소매 상하복으로, 여름철 시원하게 입기 좋은 제품입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000641",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:37.044Z",
+      "optionIndex": 4,
+      "optionTotal": 8,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "[해피랜드] 코벤트 민소 상하 H1321210",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000641/image/main/1000000641_main_04.jpg",
+      "option1": "민트",
+      "option2": "110",
+      "consumer_price": 35000,
+      "sales_price": 35000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "코벤트민소상하",
+        "여름철의류",
+        "스트라이프패턴",
+        "동물캐릭터패치",
+        "민트",
+        "노랑",
+        "폴리에스터50",
+        "면50"
+      ],
+      "usp": "화사한 컬러 스트라이프 패턴의 민소매 상하복으로, 여름철 시원하게 입기 좋은 제품입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000641",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:37.045Z",
+      "optionIndex": 5,
+      "optionTotal": 8,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "[해피랜드] 코벤트 민소 상하 H1321210",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000641/image/main/1000000641_main_04.jpg",
+      "option1": "민트",
+      "option2": "80",
+      "consumer_price": 35000,
+      "sales_price": 35000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "코벤트민소상하",
+        "여름철의류",
+        "스트라이프패턴",
+        "동물캐릭터패치",
+        "민트",
+        "노랑",
+        "폴리에스터50",
+        "면50"
+      ],
+      "usp": "화사한 컬러 스트라이프 패턴의 민소매 상하복으로, 여름철 시원하게 입기 좋은 제품입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000641",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:37.045Z",
+      "optionIndex": 6,
+      "optionTotal": 8,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "[해피랜드] 코벤트 민소 상하 H1321210",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000641/image/main/1000000641_main_04.jpg",
+      "option1": "민트",
+      "option2": "90",
+      "consumer_price": 35000,
+      "sales_price": 35000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "코벤트민소상하",
+        "여름철의류",
+        "스트라이프패턴",
+        "동물캐릭터패치",
+        "민트",
+        "노랑",
+        "폴리에스터50",
+        "면50"
+      ],
+      "usp": "화사한 컬러 스트라이프 패턴의 민소매 상하복으로, 여름철 시원하게 입기 좋은 제품입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000641",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:37.045Z",
+      "optionIndex": 7,
+      "optionTotal": 8,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "압소바",
+      "name": "[압소바] 도티 슬림 무소상하 A1313004",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000636/image/main/1000000636_main_010.jpg",
+      "option1": "크림",
+      "option2": "100",
+      "consumer_price": 59000,
+      "sales_price": 59000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "도티슬림무소상하",
+        "여름상하복",
+        "크림색",
+        "잔꽃무늬",
+        "부드러운촉감",
+        "면레이온혼합"
+      ],
+      "usp": "편안한 여름 데일리룩으로 적합한 잔꽃 무늬의 도티 슬림 무소상하 세트입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000636",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:46.908Z",
+      "optionIndex": 0,
+      "optionTotal": 4,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "압소바",
+      "name": "[압소바] 도티 슬림 무소상하 A1313004",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000636/image/main/1000000636_main_010.jpg",
+      "option1": "크림",
+      "option2": "110",
+      "consumer_price": 59000,
+      "sales_price": 59000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "도티슬림무소상하",
+        "여름상하복",
+        "크림색",
+        "잔꽃무늬",
+        "부드러운촉감",
+        "면레이온혼합"
+      ],
+      "usp": "편안한 여름 데일리룩으로 적합한 잔꽃 무늬의 도티 슬림 무소상하 세트입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000636",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:46.908Z",
+      "optionIndex": 1,
+      "optionTotal": 4,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "압소바",
+      "name": "[압소바] 도티 슬림 무소상하 A1313004",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000636/image/main/1000000636_main_010.jpg",
+      "option1": "크림",
+      "option2": "80",
+      "consumer_price": 59000,
+      "sales_price": 59000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "도티슬림무소상하",
+        "여름상하복",
+        "크림색",
+        "잔꽃무늬",
+        "부드러운촉감",
+        "면레이온혼합"
+      ],
+      "usp": "편안한 여름 데일리룩으로 적합한 잔꽃 무늬의 도티 슬림 무소상하 세트입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000636",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:46.908Z",
+      "optionIndex": 2,
+      "optionTotal": 4,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "압소바",
+      "name": "[압소바] 도티 슬림 무소상하 A1313004",
+      "image_url": "https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000636/image/main/1000000636_main_010.jpg",
+      "option1": "크림",
+      "option2": "90",
+      "consumer_price": 59000,
+      "sales_price": 59000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "도티슬림무소상하",
+        "여름상하복",
+        "크림색",
+        "잔꽃무늬",
+        "부드러운촉감",
+        "면레이온혼합"
+      ],
+      "usp": "편안한 여름 데일리룩으로 적합한 잔꽃 무늬의 도티 슬림 무소상하 세트입니다.",
+      "category_group": [
+        "유아 생활"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "option2": {
+        "method": "ai",
+        "source": "옵션 다축 의미배치 / openai"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "상세이미지OCR+상품명 / openai"
+      },
+      "usp": {
+        "method": "ai",
+        "source": "상세이미지OCR / openai"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / openai"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005",
+      "productNo": "1000000636",
+      "naverMid": null,
+      "crawledAt": "2026-06-10T18:03:46.908Z",
+      "optionIndex": 3,
+      "optionTotal": 4,
+      "optionAxes": [],
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": true,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  }
+]

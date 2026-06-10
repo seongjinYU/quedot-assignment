@@ -1,0 +1,162 @@
+{
+  "store": "kefii",
+  "totalProducts": 50,
+  "totalRows": 384,
+  "fillRate": {
+    "brand_name": {
+      "filled": 384,
+      "rate": "100.0%",
+      "method": {
+        "deterministic": 384
+      }
+    },
+    "name": {
+      "filled": 384,
+      "rate": "100.0%",
+      "method": {
+        "deterministic": 384
+      }
+    },
+    "image_url": {
+      "filled": 384,
+      "rate": "100.0%",
+      "method": {
+        "deterministic": 384
+      }
+    },
+    "option1": {
+      "filled": 378,
+      "rate": "98.4%",
+      "method": {
+        "ai": 378,
+        "empty": 6
+      }
+    },
+    "option2": {
+      "filled": 314,
+      "rate": "81.8%",
+      "method": {
+        "ai": 314,
+        "empty": 70
+      }
+    },
+    "consumer_price": {
+      "filled": 384,
+      "rate": "100.0%",
+      "method": {
+        "deterministic": 372,
+        "calculated": 12
+      }
+    },
+    "sales_price": {
+      "filled": 384,
+      "rate": "100.0%",
+      "method": {
+        "deterministic": 372,
+        "calculated": 12
+      }
+    },
+    "lowest_price": {
+      "filled": 0,
+      "rate": "0.0%",
+      "method": {
+        "empty": 384
+      }
+    },
+    "discount_rate": {
+      "filled": 384,
+      "rate": "100.0%",
+      "method": {
+        "calculated": 384
+      }
+    },
+    "hashtags": {
+      "filled": 384,
+      "rate": "100.0%",
+      "method": {
+        "ai": 384
+      }
+    },
+    "usp": {
+      "filled": 384,
+      "rate": "100.0%",
+      "method": {
+        "ai": 384
+      }
+    },
+    "category_group": {
+      "filled": 384,
+      "rate": "100.0%",
+      "method": {
+        "ai": 384
+      }
+    }
+  },
+  "emptyReasons": {
+    "option1: 옵션 텍스트 정리 후 빈값": 6,
+    "option2: 단일 옵션 축": 42,
+    "option2: 옵션 텍스트 정리 후 빈값": 28,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82515896000 확보 → 네이버쇼핑 실조회로 확장 가능": 12,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82450604265 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=87984140482 확보 → 네이버쇼핑 실조회로 확장 가능": 9,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=83469005468 확보 → 네이버쇼핑 실조회로 확장 가능": 16,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88874131679 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88874135528 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=83093086254 확보 → 네이버쇼핑 실조회로 확장 가능": 25,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=87432322613 확보 → 네이버쇼핑 실조회로 확장 가능": 36,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85647133061 확보 → 네이버쇼핑 실조회로 확장 가능": 60,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=90276498724 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88859050724 확보 → 네이버쇼핑 실조회로 확장 가능": 2,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=86830019058 확보 → 네이버쇼핑 실조회로 확장 가능": 8,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=86400187597 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85647105933 확보 → 네이버쇼핑 실조회로 확장 가능": 65,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88874127465 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88860267501 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88833403055 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88219487160 확보 → 네이버쇼핑 실조회로 확장 가능": 2,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88146607811 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=86247021162 확보 → 네이버쇼핑 실조회로 확장 가능": 40,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=86187221130 확보 → 네이버쇼핑 실조회로 확장 가능": 36,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85330100120 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=91171774337 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=90971126404 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=90037222320 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=89782232750 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88874107585 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88874089458 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88463739615 확보 → 네이버쇼핑 실조회로 확장 가능": 3,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=88160161513 확보 → 네이버쇼핑 실조회로 확장 가능": 2,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=87642025613 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=87606405226 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=87432316817 확보 → 네이버쇼핑 실조회로 확장 가능": 2,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=86830043703 확보 → 네이버쇼핑 실조회로 확장 가능": 12,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=86017026194 확보 → 네이버쇼핑 실조회로 확장 가능": 12,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85702706220 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85702700445 확보 → 네이버쇼핑 실조회로 확장 가능": 10,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85702687524 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85702507660 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85702503816 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85702496001 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=85702491172 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=84115907026 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82541388744 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82453636570 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82453636075 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82453634004 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82453633356 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82453632800 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82453632214 확보 → 네이버쇼핑 실조회로 확장 가능": 1
+  },
+  "validationIssues": {
+    "error": 0,
+    "warn": 99,
+    "byField": {
+      "option1": 39,
+      "option2": 60
+    }
+  },
+  "aiUsage": {
+    "enriched": 384,
+    "ruleFallback": 0
+  }
+}

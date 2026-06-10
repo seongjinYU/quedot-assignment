@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>큐닷 과제 — 크롤링 → 저장 전체 흐름</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #171a23;
+    --panel-2: #1d212c;
+    --ink: #e7e9ee;
+    --muted: #98a0b3;
+    --line: #2c3140;
+    --naver: #03c75a;        /* 네이버 그린 */
+    --naver-soft: #0c2a1b;
+    --happy: #4aa3ff;        /* 해피랜드 블루 */
+    --happy-soft: #102438;
+    --shared: #c9a227;       /* 공통 골드 */
+    --shared-soft: #2a2410;
+    --danger: #ff6b6b;
+    --radius: 14px;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 50% -10%, #1a1f2e 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    padding: 48px 24px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header.page { text-align: center; margin-bottom: 8px; }
+  header.page h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  header.page p { color: var(--muted); margin: 0; font-size: 15px; }
+  .legend { display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin:22px 0 38px; font-size:13px; color:var(--muted);}
+  .legend span { display:inline-flex; align-items:center; gap:7px; }
+  .dot { width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .dot.n{background:var(--naver);} .dot.h{background:var(--happy);} .dot.s{background:var(--shared);}
+
+  /* 2-column adapters */
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+  @media (max-width: 860px){ .cols{ grid-template-columns:1fr; } }
+
+  .track { display:flex; flex-direction:column; align-items:stretch; }
+  .track-head {
+    text-align:center; padding:14px; border-radius:var(--radius);
+    font-weight:700; font-size:17px; border:1px solid var(--line);
+    position:relative;
+  }
+  .track.naver .track-head { background:var(--naver-soft); border-color:#14502f; color:#7df0a9; }
+  .track.happy .track-head { background:var(--happy-soft); border-color:#194a73; color:#9fd0ff; }
+  .track-head .sub { display:block; font-weight:500; font-size:12px; color:var(--muted); margin-top:4px; }
+
+  .step {
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; position:relative;
+  }
+  .step .n {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:50%; font-size:12px; font-weight:700;
+    margin-right:8px; color:#0b0d12; vertical-align:middle;
+  }
+  .track.naver .step .n{ background:var(--naver);}
+  .track.happy .step .n{ background:var(--happy);}
+  .step .title { font-weight:650; font-size:14.5px; }
+  .step .body { color:var(--muted); font-size:12.8px; margin-top:7px; }
+  .step .body code { font-family:var(--mono); font-size:11.8px; background:var(--panel-2); padding:1px 6px; border-radius:6px; color:#cdd3e1; }
+  .step .tag {
+    display:inline-block; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:999px;
+    margin-top:9px; letter-spacing:.02em;
+  }
+  .tag.warn{ background:#2a1414; color:#ff9d9d; border:1px solid #4a1f1f; }
+  .tag.good{ background:#0c2a1b; color:#7df0a9; border:1px solid #14502f; }
+  .tag.info{ background:#102438; color:#9fd0ff; border:1px solid #194a73; }
+
+  /* connector */
+  .arrow { height:30px; display:flex; align-items:center; justify-content:center; color:var(--line); }
+  .arrow::before{ content:""; width:2px; height:100%; background:linear-gradient(var(--line),var(--line)); }
+  .arrow.naver::before{ background:linear-gradient(#14502f,#0c2a1b);}
+  .arrow.happy::before{ background:linear-gradient(#194a73,#102438);}
+  .arrow .head{ position:absolute; transform:translateY(9px); font-size:13px; }
+
+  .raw-pill {
+    text-align:center; align-self:center; margin:4px auto 0;
+    background:var(--panel-2); border:1px dashed var(--line); border-radius:999px;
+    padding:7px 18px; font-family:var(--mono); font-size:12px; color:#cdd3e1;
+  }
+
+  /* merge */
+  .merge { text-align:center; margin:30px 0 8px; color:var(--muted); font-size:13px; }
+  .merge .lines{ display:flex; justify-content:center; gap:0; height:36px; position:relative; }
+  .merge svg{ width:60%; max-width:520px; height:100%; }
+
+  /* shared pipeline */
+  .shared { max-width:680px; margin:0 auto; }
+  .shared .track-head{ background:var(--shared-soft); border-color:#4a3f12; color:#f0d97d; }
+  .shared .step .n{ background:var(--shared); }
+  .shared .arrow::before{ background:linear-gradient(#4a3f12,#2a2410); }
+
+  .store-out { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:4px; }
+  @media (max-width:560px){ .store-out{ grid-template-columns:1fr; } }
+  .file {
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px;
+  }
+  .file .fn{ font-family:var(--mono); font-size:12.5px; color:#f0d97d; }
+  .file .fd{ font-size:12px; color:var(--muted); margin-top:5px; }
+
+  /* comparison table */
+  .cmp { margin-top:64px; }
+  .cmp h2{ font-size:20px; text-align:center; margin-bottom:20px; letter-spacing:-0.01em;}
+  table{ width:100%; border-collapse:collapse; background:var(--panel); border-radius:var(--radius); overflow:hidden; border:1px solid var(--line); font-size:13.5px; }
+  th,td{ padding:13px 16px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top; }
+  thead th{ background:var(--panel-2); font-size:13px; }
+  thead th:nth-child(2){ color:#7df0a9; } thead th:nth-child(3){ color:#9fd0ff; }
+  tbody tr:last-child td{ border-bottom:none; }
+  td:first-child{ color:var(--muted); font-weight:600; white-space:nowrap; }
+  .principle { margin-top:48px; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--shared); border-radius:12px; padding:18px 22px; }
+  .principle b{ color:#f0d97d; }
+  .principle ul{ margin:10px 0 0; padding-left:20px; color:var(--muted); font-size:13.5px;}
+  .principle li{ margin:5px 0; }
+  footer{ text-align:center; color:#5c6478; font-size:12px; margin-top:54px; }
+
+  /* sample data section */
+  .samples{ margin-top:64px; }
+  .samples h2{ font-size:20px; text-align:center; margin-bottom:6px; letter-spacing:-0.01em; }
+  .samples .sub{ text-align:center; color:var(--muted); font-size:13px; margin-bottom:26px; }
+  .sgroup{ margin-bottom:30px; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+  .sg-head{ padding:12px 18px; font-weight:700; font-size:15px; background:var(--panel-2); border-bottom:1px solid var(--line); }
+  .sg-head span{ font-weight:500; font-size:12px; color:var(--muted); margin-left:8px; }
+  .sgroup.naver .sg-head{ border-left:3px solid var(--naver); color:#9ff0c2; }
+  .sgroup.happy .sg-head{ border-left:3px solid var(--happy); color:#bfe0ff; }
+  .sg-cards{ display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:16px; }
+  @media (max-width:760px){ .sg-cards{ grid-template-columns:1fr; } }
+  .scard{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .sc-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
+  .sc-name{ font-weight:650; font-size:13.5px; line-height:1.35; }
+  .sc-cat{ flex:none; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; background:#0c2a1b; color:#7df0a9; border:1px solid #14502f; white-space:nowrap; }
+  .sc-ocr{ display:inline-block; margin-left:7px; font-size:10px; font-weight:600; padding:2px 7px; border-radius:999px; background:#102438; color:#9fd0ff; border:1px solid #194a73; vertical-align:middle; }
+  .sc-sku{ display:inline-block; margin-left:6px; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; background:#2a2410; color:#f0d97d; border:1px solid #4a3f12; vertical-align:middle; }
+  .sc-note{ margin-top:10px; font-size:11.5px; color:var(--muted); background:var(--panel-2); border:1px dashed var(--line); border-radius:8px; padding:8px 10px; line-height:1.5; }
+  .sc-note b{ color:#f0d97d; } .sc-note code{ font-family:var(--mono); font-size:11px; color:#cdd3e1; background:#0b0d12; padding:1px 5px; border-radius:5px; }
+  .sc-tbl{ width:100%; border-collapse:collapse; font-size:12.3px; }
+  .sc-tbl td{ padding:5px 4px; border-bottom:1px solid #232734; vertical-align:top; }
+  .sc-tbl tr:last-child td{ border-bottom:none; }
+  .sc-tbl td:first-child{ color:var(--muted); width:78px; white-space:nowrap; font-weight:600; }
+  .chip{ display:inline-block; background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:1px 7px; margin:1px 2px 1px 0; font-size:11px; color:#cdd3e1; }
+  .nul{ color:#697089; font-style:italic; }
+  .scard details{ margin-top:11px; }
+  .scard summary{ cursor:pointer; font-size:12px; color:var(--happy); user-select:none; }
+  .scard pre{ background:#0b0d12; border:1px solid var(--line); border-radius:8px; padding:12px; margin:9px 0 0; overflow:auto; max-height:340px; font-family:var(--mono); font-size:11px; line-height:1.5; color:#cdd3e1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <h1>브랜드 스토어 크롤링 → 큐닷 제안서 저장 전체 흐름</h1>
+    <p>URL 한 줄 → 전 상품 수집 → AI 정규화 → 검증 → JSON 저장 · 어댑터별 수집 방식은 다르고, 정규화·저장은 공통</p>
+  </header>
+
+  <div class="legend">
+    <span><i class="dot n"></i> 네이버 (브라우저 + 내부 JSON API)</span>
+    <span><i class="dot h"></i> 해피랜드 (순수 HTTP fetch)</span>
+    <span><i class="dot s"></i> 공통 파이프라인</span>
+  </div>
+
+  <!-- 어댑터 2단 -->
+  <div class="cols">
+    <!-- NAVER -->
+    <div class="track naver">
+      <div class="track-head">🟢 네이버 스마트스토어 / 브랜드스토어
+        <span class="sub">smartstore.naver.com · brand.naver.com</span>
+      </div>
+      <div class="arrow naver"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">1</span>인증 세션 오픈</div>
+        <div class="body"><code>BrowserSession.open()</code> — persistent 컨텍스트로 <b>사용자 1회 로그인</b> 세션 재사용 + stealth.</div>
+        <span class="tag warn">curl/직접 fetch는 429·캡차 → 실브라우저+세션이 정공법</span>
+      </div>
+      <div class="arrow naver"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">2</span>채널 식별</div>
+        <div class="body">스토어 진입 → <code>__PRELOADED_STATE__</code>에서 <code>channelUid</code>·<code>channelNo</code>, API prefix(<code>/i</code> vs <code>/n</code>) 결정.</div>
+      </div>
+      <div class="arrow naver"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">3</span>목록 전수 페이지네이션</div>
+        <div class="body">1페이지: SSR <code>categoryProducts</code>(40개). 2~N페이지: 스크롤 → <b>페이지 버튼 클릭 → XHR 가로채기</b>.</div>
+        <span class="tag warn">목록 직접 fetch는 서명헤더 부재로 429 → 클릭+가로채기</span>
+      </div>
+      <div class="arrow naver"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">4</span>가격 배치 조회</div>
+        <div class="body"><code>POST product-benefits</code> (50개씩 청크) → 정가·즉시할인가·배송비. <b>개별 호출 회피.</b></div>
+        <span class="tag good">성능 규칙: 가격은 배치로</span>
+      </div>
+      <div class="arrow naver"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">5</span>상세 추출 (상품마다)</div>
+        <div class="body"><code>GET products/{id}?withWindow=false</code> → 이름·이미지·옵션·<code>wholeCategoryName</code>·sellerTags·<code>syncNvMid</code>. 배치 가격 병합.</div>
+        <span class="tag info">결정적 추출: 화면 파싱 X, 내부 JSON</span>
+      </div>
+      <div class="arrow naver"><span class="head" style="color:var(--naver)">▼</span></div>
+      <div class="raw-pill">RawProduct</div>
+    </div>
+
+    <!-- HAPPYLAND -->
+    <div class="track happy">
+      <div class="track-head">🔵 해피랜드 공식몰 (고도몰)
+        <span class="sub">happylandmall.com · 브라우저 불필요</span>
+      </div>
+      <div class="arrow happy"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">1</span>목록 + 카테고리 수집</div>
+        <div class="body">메인 fetch → 카테고리 링크(<code>cateCd</code>) 수집 + <code>collectCateNames()</code>로 <b>cateCd→카테고리명</b> 표 (SHOP/ALL·브랜드 영문 제외, 한글명만).</div>
+        <span class="tag good">needsBrowser = false — 브라우저 안 띄움</span>
+      </div>
+      <div class="arrow happy"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">2</span>카드 결정적 추출</div>
+        <div class="body">각 <code>goods_list.php?cateCd=</code> fetch → 카드 <code>data-*</code> 속성: goodsNo·이름·가격·이미지·optionfl·cateCd. 중복 시 <b>가장 구체적인 리프 카테고리</b>로 갱신 → <code>cardCache</code>.</div>
+        <span class="tag info">목록 1회로 얻는 건 재호출 안 함</span>
+      </div>
+      <div class="arrow happy"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">3</span>가격 — 별도 호출 없음</div>
+        <div class="body">해피랜드는 <b>정가 판매</b>(할인 표시 없음) → 카드 가격을 정가=판매가로 사용.</div>
+      </div>
+      <div class="arrow happy"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">4</span>상세 (상품마다)</div>
+        <div class="body"><code>cardCache</code> 재사용 → <b>추가 페이지 요청 0</b>. 옵션 있는 상품만(<code>optionfl=y</code>) <code>POST layer_option.php</code> → "색상:사이즈" 파싱.</div>
+        <span class="tag good">5상품 ≈ 6.8초 (브라우저 대비 대폭 단축)</span>
+      </div>
+      <div class="arrow happy"></div>
+      <!-- 균형 맞춤용 빈 스텝 -->
+      <div class="step" style="opacity:.45;">
+        <div class="title"><span class="n" style="background:#3a4150;color:#9aa3b5">·</span>OCR 미도입 (검증 결정)</div>
+        <div class="body">상세 이미지는 텍스트 없는 상품 사진으로 실물 검증 → OCR 보류 확정. USP는 상품명+카테고리 근거로 생성.</div>
+      </div>
+      <div class="arrow happy"><span class="head" style="color:var(--happy)">▼</span></div>
+      <div class="raw-pill">RawProduct</div>
+    </div>
+  </div>
+
+  <!-- merge -->
+  <div class="merge">
+    <div class="lines">
+      <svg viewBox="0 0 520 36" preserveAspectRatio="none">
+        <path d="M110 2 C110 24, 260 14, 260 34" fill="none" stroke="#03c75a" stroke-width="2"/>
+        <path d="M410 2 C410 24, 260 14, 260 34" fill="none" stroke="#4aa3ff" stroke-width="2"/>
+        <polygon points="260,36 255,28 265,28" fill="#c9a227"/>
+      </svg>
+    </div>
+    두 어댑터 모두 동일한 <b style="color:#f0d97d">RawProduct</b> 형태로 합류 → 공통 파이프라인
+  </div>
+
+  <!-- SHARED -->
+  <div class="track shared">
+    <div class="shared">
+      <div class="track-head">⚙️ 공통 파이프라인 (정규화 · AI · 검증 · 저장)</div>
+      <div class="arrow"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">6</span>정규화 + AI 보강 <code>mapToQuedot()</code></div>
+        <div class="body">
+          • <code>enrich()</code> → category(7종)·hashtags·usp <i>(OpenAI 키 있으면 LLM, 없으면 룰 baseline 자동 강등)</i><br>
+          • <code>normalizeOptions()</code> → 옵션 텍스트 정제(수식어·이모지 제거)<br>
+          • 옵션 조합별 펼침 → SKU 단위 <code>NormalizedProduct[]</code><br>
+          • 필드마다 <b>provenance(근거)</b> 기록
+        </div>
+        <span class="tag info">룰 우선, LLM은 어려운 20%만</span>
+      </div>
+      <div class="arrow"></div>
+
+      <div class="step">
+        <div class="title"><span class="n">7</span>검증 — 환각 차단 단일 관문 <code>validate()</code></div>
+        <div class="body">7종 enum 밖 카테고리 / 음수 가격 / 근거 없는 USP 차단. provider 경로(LLM·룰·fallback) 무관하게 <b>최종 산출물은 반드시 이 관문 통과</b>. 상품 단위 에러 격리.</div>
+        <span class="tag good">AI 출력은 신뢰하지 않는다</span>
+      </div>
+      <div class="arrow"><span class="head" style="color:var(--shared)">▼</span></div>
+
+      <div class="step" style="border-color:#4a3f12;">
+        <div class="title"><span class="n">8</span>💾 저장</div>
+        <div class="store-out">
+          <div class="file">
+            <div class="fn">output/{store}.json</div>
+            <div class="fd">정규화된 큐닷 상품 제안서 (SKU 배열) + 필드별 provenance·basis</div>
+          </div>
+          <div class="file">
+            <div class="fn">output/{store}.quality.json</div>
+            <div class="fd">정제 품질 리포트 — 필드 채움률·검증 이슈·공란 사유</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- comparison -->
+  <div class="cmp">
+    <h2>핵심 차이 한눈에</h2>
+    <table>
+      <thead>
+        <tr><th>항목</th><th>🟢 네이버</th><th>🔵 해피랜드</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>접근 방식</td><td>인증 브라우저 세션 + 내부 JSON API</td><td>순수 HTTP fetch (cheerio)</td></tr>
+        <tr><td>차단 난이도</td><td>높음 (429 · 캡차 · 로그인벽)</td><td>낮음 (rate limit만 준수)</td></tr>
+        <tr><td>목록 수집</td><td>SSR + 페이지버튼 클릭 → XHR 가로채기</td><td><code>goods_list.php</code> + <code>data-*</code> 속성</td></tr>
+        <tr><td>가격</td><td>별도 배치 API (product-benefits)</td><td>목록 카드에 포함 (정가 판매)</td></tr>
+        <tr><td>상세 호출</td><td>상품마다 <code>products/{id}</code> 필수</td><td><b>추가 호출 0</b> (카드 재사용)</td></tr>
+        <tr><td>옵션</td><td>상세 응답의 optionCombinations</td><td>옵션 있을 때만 <code>layer_option.php</code></td></tr>
+        <tr><td>카테고리 근거</td><td>wholeCategoryName (결정적)</td><td>cateCd→리프 카테고리명 매핑</td></tr>
+        <tr><td>속도</td><td>상대적으로 느림 (브라우저+딜레이)</td><td>빠름 (5상품 ≈ 6.8초)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 실제 크롤링 결과 예시 -->
+  <div class="samples">
+    <h2>실제 크롤링 결과 예시</h2>
+    <div class="sub">각 스토어에서 추출·정규화한 큐닷 상품 제안서 — 사이트당 2건 · 전체 JSON에는 필드별 provenance(근거)·meta 포함</div>
+    <div id="samples-root"></div>
+  </div>
+
+  <div class="principle">
+    <b>설계 원칙 (타협 금지)</b>
+    <ul>
+      <li><b>결정적 추출</b> — 화면 셀렉터가 아니라 내부 JSON API / <code>data-*</code> 속성에서 추출</li>
+      <li><b>룰 우선, LLM은 어려운 20%만</b> — 가격·이미지·이름은 코드로, 분류·요약만 LLM</li>
+      <li><b>AI 출력은 신뢰하지 않는다</b> — 모든 LLM 출력은 validate 관문 통과</li>
+      <li><b>지어내지 않는다</b> — 못 얻는 값은 공란(null) + 사유(provenance)</li>
+      <li><b>크롤링 매너</b> — 요청 딜레이 유지, 본인 인증 세션 재사용, 차단 우회 자랑 금지</li>
+    </ul>
+  </div>
+
+  <footer>큐닷 AX 과제 · 데이터 수집 → AI 분석 → 정규화 파이프라인 · 어댑터 패턴 (새 몰 = 어댑터 1개 추가)</footer>
+</div>
+
+<script>
+const SAMPLES = {"phytonutri":[{"data":{"brand_name":"파이토뉴트리","name":"지니어스뉴 DHA ALA 영양 제품 올로메가 베이비 스마트 이유식 부스터 드롭스","image_url":"https://shop-phinf.pstatic.net/20250717_3/1752714692794PmOyz_JPEG/68940007644304227_1216296138.jpg","option1":"지니어스뉴 드롭스 / 지니어스뉴 드롭스 / 오프너O","option2":"1개 / 1개","consumer_price":46000,"sales_price":26800,"lowest_price":null,"discount_rate":41.7,"hashtags":["DHA","올로메가","영양제","스마트이유식","부스터드롭스"],"usp":"올로메가 베이비 스마트 이유식 부스터 드롭스는 DHA가 포함된 영양 제품입니다.","category_group":["유아 건강"]},"provenance":{"brand_name":{"method":"deterministic"},"name":{"method":"deterministic"},"image_url":{"method":"deterministic"},"option1":{"method":"ai","source":"옵션 정규화 / openai"},"option2":{"method":"ai","source":"옵션 정규화 / openai"},"consumer_price":{"method":"deterministic"},"sales_price":{"method":"deterministic"},"discount_rate":{"method":"calculated"},"lowest_price":{"method":"empty","reason":"가산점 미구현. 매칭키 syncNvMid=87168268521 확보 → 네이버쇼핑 실조회로 확장 가능"},"hashtags":{"method":"ai","source":"sellerTags+상품명 / openai"},"usp":{"method":"ai","source":"상품명+태그 / openai"},"category_group":{"method":"ai","source":"카테고리경로+상품명 / openai"}},"meta":{"storeUrl":"https://smartstore.naver.com/phytonutri","productNo":"9623766251","naverMid":87168268521,"crawledAt":"2026-06-10T15:48:11.009Z","optionIndex":0,"optionTotal":3,"optionAxes":["[필수] 제품선택"],"soldOut":false,"basis":{"categoryPath":true,"detailText":false,"sellerTags":true,"usp":true}}},{"data":{"brand_name":"파이토뉴트리","name":"그로우뉴 이유식 돌 아이 유기농 칼슘 칼마디 부스터 칼마망dk 망간 비타민k2","image_url":"https://shop-phinf.pstatic.net/20260120_202/17688699119618VkFl_JPEG/19821313837718841_112769184.jpg","option1":null,"option2":null,"consumer_price":30800,"sales_price":27300,"lowest_price":null,"discount_rate":11.4,"hashtags":["유기농","칼슘","아이","영양제","비타민K2","그로우뉴"],"usp":"유기농 칼슘과 비타민 K2가 포함된 아이와 아기를 위한 영양제입니다.","category_group":["유아 건강"]},"provenance":{"brand_name":{"method":"deterministic"},"name":{"method":"deterministic"},"image_url":{"method":"deterministic"},"option1":{"method":"empty","reason":"옵션 없음(단일상품) 또는 주관식 입력형 제외"},"option2":{"method":"empty","reason":"옵션 없음"},"consumer_price":{"method":"deterministic"},"sales_price":{"method":"deterministic"},"discount_rate":{"method":"calculated"},"lowest_price":{"method":"empty","reason":"가산점 미구현. 매칭키 syncNvMid=87514407577 확보 → 네이버쇼핑 실조회로 확장 가능"},"hashtags":{"method":"ai","source":"sellerTags+상품명 / openai"},"usp":{"method":"ai","source":"상품명+태그 / openai"},"category_group":{"method":"ai","source":"카테고리경로+상품명 / openai"}},"meta":{"storeUrl":"https://smartstore.naver.com/phytonutri","productNo":"9969905304","naverMid":87514407577,"crawledAt":"2026-06-10T15:48:14.758Z","optionAxes":[],"basis":{"categoryPath":true,"detailText":false,"sellerTags":true,"usp":true}}}],"kefii":[{"data":{"brand_name":"케피","name":"케피 버블클렌저 3개 핑크+옐로우+퍼플 아기 거품목욕 버블스프레이 유아바스","image_url":"https://shop-phinf.pstatic.net/20260129_271/1769679031577GDwXx_JPEG/51094225557261089_1625051651.jpg","option1":"버블클렌저 / 핑크+옐로우+퍼플","option2":"200ml / 3개","consumer_price":32700,"sales_price":18300,"lowest_price":null,"discount_rate":44,"hashtags":["버블클렌저","유아바디워시","거품욕탕","목욕놀이","유아거품목욕"],"usp":"아기와 함께 즐길 수 있는 다양한 색상의 거품 목욕 제품입니다.","category_group":["유아 생활"]},"provenance":{"brand_name":{"method":"deterministic"},"name":{"method":"deterministic"},"image_url":{"method":"deterministic"},"option1":{"method":"ai","source":"옵션 정규화 / openai"},"option2":{"method":"ai","source":"옵션 정규화 / openai"},"consumer_price":{"method":"deterministic"},"sales_price":{"method":"deterministic"},"discount_rate":{"method":"calculated"},"lowest_price":{"method":"empty","reason":"가산점 미구현. 매칭키 syncNvMid=82515896000 확보 → 네이버쇼핑 실조회로 확장 가능"},"hashtags":{"method":"ai","source":"sellerTags+상품명 / openai"},"usp":{"method":"ai","source":"상품명+태그 / openai"},"category_group":{"method":"ai","source":"카테고리경로+상품명 / openai"}},"meta":{"storeUrl":"https://brand.naver.com/kefii","productNo":"4971375678","naverMid":82515896000,"crawledAt":"2026-06-10T15:54:01.566Z","optionIndex":0,"optionTotal":12,"optionAxes":["선택","컬러선택"],"soldOut":false,"basis":{"categoryPath":true,"detailText":false,"sellerTags":true,"usp":true}}},{"data":{"brand_name":"케피","name":"케피 버블클렌저 200ml 7종 유아바스 목욕놀이 키즈 바디워시","image_url":"https://shop-phinf.pstatic.net/20250915_125/1757924163289U6lAQ_JPEG/92057106421508773_1876975092.jpg","option1":"유아바스 / 핑크, 옐로우, 그린, 블루, 퍼플, 화이트, 초코브라운","option2":"200ml","consumer_price":80000,"sales_price":42300,"lowest_price":null,"discount_rate":47.1,"hashtags":["버블클렌저","유아바디워시","목욕놀이","유아목욕놀이","거품목욕"],"usp":"유아 전용의 안전한 버블클렌저로 재미있는 목욕놀이를 제공합니다.","category_group":["유아 생활"]},"provenance":{"brand_name":{"method":"deterministic"},"name":{"method":"deterministic"},"image_url":{"method":"deterministic"},"option1":{"method":"ai","source":"옵션 정규화 / openai"},"option2":{"method":"ai","source":"옵션 정규화 / openai"},"consumer_price":{"method":"deterministic"},"sales_price":{"method":"deterministic"},"discount_rate":{"method":"calculated"},"lowest_price":{"method":"empty","reason":"가산점 미구현. 매칭키 syncNvMid=82450604265 확보 → 네이버쇼핑 실조회로 확장 가능"},"hashtags":{"method":"ai","source":"sellerTags+상품명 / openai"},"usp":{"method":"ai","source":"상품명+태그 / openai"},"category_group":{"method":"ai","source":"카테고리경로+상품명 / openai"}},"meta":{"storeUrl":"https://brand.naver.com/kefii","productNo":"4906080601","naverMid":82450604265,"crawledAt":"2026-06-10T15:54:07.274Z","optionIndex":0,"optionTotal":1,"optionAxes":["200ml 버블클렌저 7종"],"soldOut":false,"basis":{"categoryPath":true,"detailText":false,"sellerTags":true,"usp":true}}}],"happylandmall":[{"data":{"brand_name":"해피랜드","name":"[해피랜드] 코벤트 민소 상하 H1321210","image_url":"https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000641/image/main/1000000641_main_04.jpg","option1":"노랑","option2":"100","consumer_price":35000,"sales_price":35000,"lowest_price":null,"discount_rate":0,"hashtags":["코벤트민소상하","여름철의류","스트라이프패턴","동물캐릭터패치","민트","노랑","폴리에스터50","면50"],"usp":"화사한 컬러 스트라이프 패턴의 민소매 상하복으로, 여름철 시원하게 입기 좋은 제품입니다.","category_group":["유아 생활"]},"provenance":{"brand_name":{"method":"deterministic"},"name":{"method":"deterministic"},"image_url":{"method":"deterministic"},"option1":{"method":"ai","source":"옵션 다축 의미배치 / openai"},"option2":{"method":"ai","source":"옵션 다축 의미배치 / openai"},"consumer_price":{"method":"deterministic"},"sales_price":{"method":"deterministic"},"discount_rate":{"method":"calculated"},"lowest_price":{"method":"empty","reason":"가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"},"hashtags":{"method":"ai","source":"상세이미지OCR+상품명 / openai"},"usp":{"method":"ai","source":"상세이미지OCR / openai"},"category_group":{"method":"ai","source":"카테고리경로+상품명 / openai"}},"meta":{"storeUrl":"https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005","productNo":"1000000641","naverMid":null,"crawledAt":"2026-06-10T18:03:37.042Z","optionIndex":0,"optionTotal":8,"optionAxes":[],"soldOut":false,"basis":{"categoryPath":true,"detailText":true,"sellerTags":false,"usp":true}}},{"data":{"brand_name":"압소바","name":"[압소바] 도티 슬림 무소상하 A1313004","image_url":"https://godomall-storage.cdn-nhncommerce.com/fa361ad2073a06ae52740c330ad8fb60/goods/1000000636/image/main/1000000636_main_010.jpg","option1":"크림","option2":"100","consumer_price":59000,"sales_price":59000,"lowest_price":null,"discount_rate":0,"hashtags":["도티슬림무소상하","여름상하복","크림색","잔꽃무늬","부드러운촉감","면레이온혼합"],"usp":"편안한 여름 데일리룩으로 적합한 잔꽃 무늬의 도티 슬림 무소상하 세트입니다.","category_group":["유아 생활"]},"provenance":{"brand_name":{"method":"deterministic"},"name":{"method":"deterministic"},"image_url":{"method":"deterministic"},"option1":{"method":"ai","source":"옵션 다축 의미배치 / openai"},"option2":{"method":"ai","source":"옵션 다축 의미배치 / openai"},"consumer_price":{"method":"deterministic"},"sales_price":{"method":"deterministic"},"discount_rate":{"method":"calculated"},"lowest_price":{"method":"empty","reason":"가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능"},"hashtags":{"method":"ai","source":"상세이미지OCR+상품명 / openai"},"usp":{"method":"ai","source":"상세이미지OCR / openai"},"category_group":{"method":"ai","source":"카테고리경로+상품명 / openai"}},"meta":{"storeUrl":"https://m.happylandmall.com/goods/goods_list.php?cateCd=014008005","productNo":"1000000636","naverMid":null,"crawledAt":"2026-06-10T18:03:46.908Z","optionIndex":0,"optionTotal":4,"optionAxes":[],"soldOut":false,"basis":{"categoryPath":true,"detailText":true,"sellerTags":false,"usp":true}}}]};
+
+const KEYS=[["brand_name","브랜드"],["consumer_price","정가"],["sales_price","판매가"],["discount_rate","할인율%"],["option1","옵션1"],["option2","옵션2"],["hashtags","해시태그"],["usp","USP"]];
+const STORE_META={
+  phytonutri:{label:"phytonutri",sub:"네이버 스마트스토어",cls:"naver"},
+  kefii:{label:"kefii",sub:"네이버 브랜드스토어",cls:"naver"},
+  happylandmall:{label:"happylandmall",sub:"해피랜드 공식몰",cls:"happy"}
+};
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmt(v){
+  if(v===null||v==="")return '<span class="nul">null</span>';
+  if(Array.isArray(v))return v.map(t=>`<span class="chip">${escapeHtml(t)}</span>`).join(' ');
+  if(typeof v==='number')return v.toLocaleString();
+  return escapeHtml(v);
+}
+function card(x){
+  const d=x.data;
+  const rows=KEYS.map(([k,lbl])=>`<tr><td>${lbl}</td><td>${fmt(d[k])}</td></tr>`).join('');
+  const ocr = /OCR/.test(x.provenance?.usp?.source||'') ? '<span class="sc-ocr">🔤 OCR 근거</span>' : '';
+  const total = x.meta?.optionTotal || 1;
+  const idx = (x.meta?.optionIndex ?? 0) + 1;
+  const combo = [d.option1, d.option2].filter(Boolean).join(':');
+  const skuBadge = total > 1 ? `<span class="sc-sku">SKU ${idx}/${total}</span>` : '';
+  const skuNote = total > 1
+    ? `<div class="sc-note">↳ 옵션 조합 <b>${total}개</b> = SKU <b>${total}행</b>으로 펼침. 이 카드는 ${idx}번째(<code>${escapeHtml(combo)}</code>) · 나머지 ${total-1}행도 JSON에 포함</div>`
+    : '';
+  return `<div class="scard">
+    <div class="sc-head"><div class="sc-name">${escapeHtml(d.name)}${ocr}${skuBadge}</div><span class="sc-cat">${escapeHtml(d.category_group.join(', '))}</span></div>
+    <table class="sc-tbl">${rows}</table>
+    ${skuNote}
+    <details><summary>전체 JSON (data · provenance · meta) 보기</summary><pre>${escapeHtml(JSON.stringify(x,null,2))}</pre></details>
+  </div>`;
+}
+const root=document.getElementById('samples-root');
+for(const [store,meta] of Object.entries(STORE_META)){
+  const items=SAMPLES[store]||[];
+  root.insertAdjacentHTML('beforeend',
+    `<div class="sgroup ${meta.cls}"><div class="sg-head">${meta.label}<span>${meta.sub} · ${items.length}건 예시</span></div><div class="sg-cards">${items.map(card).join('')}</div></div>`);
+}
+</script>
+</body>
+</html>
