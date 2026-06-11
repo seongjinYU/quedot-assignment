@@ -72,11 +72,20 @@ function buildRow(
     usp: hasDetailText || hasTags || !!raw.categoryPath || (!!raw.name && raw.name.trim().length >= 15),
   };
 
+  // 자가복구로 채운 raw 필드는 'ai-recovery'로 정직 표기(결정적 추출 실패 → 원본 LLM 복구, 검수 대상).
+  //   base = 정상 추출이었을 때의 provenance. 복구된 필드면 그 위에 ai-recovery로 덮어쓴다.
+  const recoveredProv = (rawKey: string, base: FieldProvenance): FieldProvenance => {
+    const rec = raw.recovered?.[rawKey];
+    if (!rec) return base;
+    const extra = base.source ? ` · ${base.source}` : '';
+    return { method: 'ai-recovery', source: `결정적 추출 실패 → 원본 LLM 복구(grounded, conf ${rec.confidence})${extra}` };
+  };
+
   // ---- 기본 식별 ----
   const brand_name = raw.brandName ?? null;
   prov.brand_name = brand_name ? det() : empty('브랜드명 없음');
   const name = raw.name ?? null;
-  prov.name = name ? det() : empty('상품명 없음');
+  prov.name = name ? recoveredProv('name', det()) : empty('상품명 없음');
   const image_url = raw.representativeImage ?? null;
   prov.image_url = image_url ? det() : empty('대표 이미지 없음');
 
@@ -108,9 +117,10 @@ function buildRow(
   const consumer_price = raw.consumerPrice != null ? raw.consumerPrice + addPrice : null;
   prov.consumer_price =
     raw.consumerPrice != null
-      ? addPrice > 0
-        ? { method: 'calculated', source: `정가 + 옵션추가금(${addPrice})` }
-        : det()
+      ? recoveredProv(
+          'consumerPrice',
+          addPrice > 0 ? { method: 'calculated', source: `정가 + 옵션추가금(${addPrice})` } : det(),
+        )
       : empty('정가 없음');
 
   const sales_price = raw.salePrice != null ? raw.salePrice + addPrice : null;
@@ -130,9 +140,10 @@ function buildRow(
   }
 
   // ---- 가산점: lowest_price ----
+  // 초기값은 공란. 실조회(resolveLowestPrices, main.ts 2.5-pass)가 켜져 있으면 이 값을 덮어쓴다.
   const lowest_price = null;
   prov.lowest_price = empty(
-    `가산점 미구현. 매칭키 syncNvMid=${raw.naverMid ?? 'N/A'} 확보 → 네이버쇼핑 실조회로 확장 가능`,
+    `lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=${raw.naverMid ?? 'N/A'}`,
   );
 
   // ---- AI 필드 (category/hashtags/usp) ----
@@ -181,6 +192,13 @@ function buildRow(
       optionAxisCount: combo ? combo.names.filter(Boolean).length : undefined,
       // 품절: 상품 단위(raw.soldOut) 또는 이 옵션 조합 단위(combo.soldOut)
       soldOut: !!(raw.soldOut || combo?.soldOut),
+      // 자가복구로 채운 필드(검수 UI가 "확인 필요"로 강조). raw 필드명 → 출력 필드명으로 변환.
+      recovered: raw.recovered
+        ? Object.entries(raw.recovered).map(([k, v]) => ({
+            field: ({ name: 'name', consumerPrice: 'consumer_price' } as Record<string, string>)[k] ?? k,
+            confidence: v.confidence,
+          }))
+        : undefined,
       basis,
     },
   };

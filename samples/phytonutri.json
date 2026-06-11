@@ -1,0 +1,596 @@
+[
+  {
+    "data": {
+      "brand_name": "피토뉴트리",
+      "name": "피토뉴트리 키즈 멀티비타민",
+      "image_url": "https://img/a1.jpg",
+      "option1": "딸기",
+      "option2": "60정 / 1개",
+      "consumer_price": 25000,
+      "sales_price": 19900,
+      "lowest_price": null,
+      "discount_rate": 20.4,
+      "hashtags": [
+        "키즈비타민",
+        "멀티비타민"
+      ],
+      "usp": null,
+      "category_group": [
+        "유아 건강"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "option2": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "sellerTags+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://smartstore.naver.com/phytonutri",
+      "productNo": "A1",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.236Z",
+      "optionIndex": 0,
+      "optionTotal": 3,
+      "optionAxes": [
+        "맛",
+        "용량",
+        "수량"
+      ],
+      "optionAxisCount": 3,
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": true,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "피토뉴트리",
+      "name": "피토뉴트리 키즈 멀티비타민",
+      "image_url": "https://img/a1.jpg",
+      "option1": "포도",
+      "option2": "120정 / 2개",
+      "consumer_price": 33000,
+      "sales_price": 27900,
+      "lowest_price": null,
+      "discount_rate": 15.5,
+      "hashtags": [
+        "키즈비타민",
+        "멀티비타민"
+      ],
+      "usp": null,
+      "category_group": [
+        "유아 건강"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "option2": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "consumer_price": {
+        "method": "calculated",
+        "source": "정가 + 옵션추가금(8000)"
+      },
+      "sales_price": {
+        "method": "calculated",
+        "source": "판매가 + 옵션추가금(8000, 추가금엔 즉시할인 미적용 가정)"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "sellerTags+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://smartstore.naver.com/phytonutri",
+      "productNo": "A1",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.237Z",
+      "optionIndex": 1,
+      "optionTotal": 3,
+      "optionAxes": [
+        "맛",
+        "용량",
+        "수량"
+      ],
+      "optionAxisCount": 3,
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": true,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "피토뉴트리",
+      "name": "피토뉴트리 키즈 멀티비타민",
+      "image_url": "https://img/a1.jpg",
+      "option1": "오렌지",
+      "option2": "120정 / 3개",
+      "consumer_price": 40000,
+      "sales_price": 34900,
+      "lowest_price": null,
+      "discount_rate": 12.8,
+      "hashtags": [
+        "키즈비타민",
+        "멀티비타민"
+      ],
+      "usp": null,
+      "category_group": [
+        "유아 건강"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "option2": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "consumer_price": {
+        "method": "calculated",
+        "source": "정가 + 옵션추가금(15000)"
+      },
+      "sales_price": {
+        "method": "calculated",
+        "source": "판매가 + 옵션추가금(15000, 추가금엔 즉시할인 미적용 가정)"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "sellerTags+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://smartstore.naver.com/phytonutri",
+      "productNo": "A1",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.237Z",
+      "optionIndex": 2,
+      "optionTotal": 3,
+      "optionAxes": [
+        "맛",
+        "용량",
+        "수량"
+      ],
+      "optionAxisCount": 3,
+      "soldOut": true,
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": true,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "피토뉴트리",
+      "name": "피토뉴트리 키즈 프로바이오틱스 30포",
+      "image_url": "https://img/a2.jpg",
+      "option1": "30포",
+      "option2": null,
+      "consumer_price": 32000,
+      "sales_price": 28000,
+      "lowest_price": null,
+      "discount_rate": 12.5,
+      "hashtags": [
+        "유아유산균"
+      ],
+      "usp": null,
+      "category_group": [
+        "유아 건강"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "ai-recovery",
+        "source": "결정적 추출 실패 → 원본 LLM 복구(grounded, conf 0.9)"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "option2": {
+        "method": "empty",
+        "reason": "단일 옵션 축"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "sellerTags+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://smartstore.naver.com/phytonutri",
+      "productNo": "A2",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.238Z",
+      "optionIndex": 0,
+      "optionTotal": 1,
+      "optionAxisCount": 1,
+      "soldOut": false,
+      "recovered": [
+        {
+          "field": "name",
+          "confidence": 0.9
+        }
+      ],
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": true,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "피토뉴트리",
+      "name": "피토뉴트리 초유 단백질 (품절)",
+      "image_url": "https://img/a3.jpg",
+      "option1": null,
+      "option2": null,
+      "consumer_price": 45000,
+      "sales_price": 45000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [
+        "초유"
+      ],
+      "usp": null,
+      "category_group": [
+        "기타 식품"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "empty",
+        "reason": "옵션 없음(단일상품) 또는 주관식 입력형 제외"
+      },
+      "option2": {
+        "method": "empty",
+        "reason": "옵션 없음"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "sellerTags+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://smartstore.naver.com/phytonutri",
+      "productNo": "A3",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.238Z",
+      "soldOut": true,
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": true,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "피토뉴트리",
+      "name": "피토뉴트리 키즈 오메가3",
+      "image_url": "https://img/a4.jpg",
+      "option1": "1개월분",
+      "option2": null,
+      "consumer_price": 28000,
+      "sales_price": 22000,
+      "lowest_price": null,
+      "discount_rate": 21.4,
+      "hashtags": [
+        "키즈오메가3"
+      ],
+      "usp": null,
+      "category_group": [
+        "유아 건강"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "option2": {
+        "method": "empty",
+        "reason": "단일 옵션 축"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "sellerTags+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://smartstore.naver.com/phytonutri",
+      "productNo": "A4",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.238Z",
+      "optionIndex": 0,
+      "optionTotal": 2,
+      "optionAxes": [
+        "용량"
+      ],
+      "optionAxisCount": 1,
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": true,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "피토뉴트리",
+      "name": "피토뉴트리 키즈 오메가3",
+      "image_url": "https://img/a4.jpg",
+      "option1": "3개월분",
+      "option2": null,
+      "consumer_price": 40000,
+      "sales_price": 34000,
+      "lowest_price": null,
+      "discount_rate": 15,
+      "hashtags": [
+        "키즈오메가3"
+      ],
+      "usp": null,
+      "category_group": [
+        "유아 건강"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "option2": {
+        "method": "empty",
+        "reason": "단일 옵션 축"
+      },
+      "consumer_price": {
+        "method": "calculated",
+        "source": "정가 + 옵션추가금(12000)"
+      },
+      "sales_price": {
+        "method": "calculated",
+        "source": "판매가 + 옵션추가금(12000, 추가금엔 즉시할인 미적용 가정)"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "sellerTags+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://smartstore.naver.com/phytonutri",
+      "productNo": "A4",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.238Z",
+      "optionIndex": 1,
+      "optionTotal": 2,
+      "optionAxes": [
+        "용량"
+      ],
+      "optionAxisCount": 1,
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": true,
+        "usp": true
+      }
+    }
+  }
+]

@@ -11,6 +11,7 @@ import OpenAI from 'openai';
 import { RuleEnricher } from './ai/rule.js';
 import { OpenAiEnricher } from './ai/openai.js';
 import { OcrReader } from './ai/ocr.js';
+import { SelfHealer } from './ai/selfHeal.js';
 import { mapToQuedot } from './normalize/mapper.js';
 import { validate, type ValidationIssue } from './normalize/validate.js';
 import { resolveBundlePricing } from './normalize/bundle.js';
@@ -18,6 +19,14 @@ import { NaverShopClient, resolveLowestPrices } from './ai/lowestPrice.js';
 import { EnuriClient } from './ai/enuri.js';
 import { OpenAiMatchJudge } from './ai/productMatch.js';
 import { buildQualityReport, printQualityReport } from './normalize/quality.js';
+import {
+  loadJson,
+  groupByProduct,
+  planIncremental,
+  buildCache,
+  type CrawlCache,
+  type IncrementalPlan,
+} from './normalize/incremental.js';
 import type { StoreAdapter } from './adapters/types.js';
 import type { NormalizedProduct } from './normalize/schema.js';
 import type { Enricher } from './ai/provider.js';
@@ -26,6 +35,8 @@ const storeUrl = process.argv[2] ?? 'https://smartstore.naver.com/phytonutri';
 const limit = Number(process.argv[3] ?? '1');
 // OCR 보강(조건부): `npm run crawl <url> <limit> ocr` 또는 ENABLE_OCR=true 일 때만
 const ocrRequested = process.argv[4] === 'ocr' || process.env.ENABLE_OCR === 'true';
+// 증분 재크롤: `npm run crawl <url> <limit> incremental` 또는 INCREMENTAL=true — 신규/가격변경만 재크롤
+const incremental = process.argv.includes('incremental') || process.env.INCREMENTAL === 'true';
 
 async function main() {
   const session = new BrowserSession({ headless: false, rateLimitMs: 1500 });
@@ -34,13 +45,21 @@ async function main() {
     ? new OpenAiEnricher(process.env.OPENAI_API_KEY)
     : new RuleEnricher();
   console.log(`Enricher: ${enricher.kind}`);
+  // 공유 OpenAI 클라이언트 (OCR · 자가복구가 함께 사용)
+  const openaiClient = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
   // OCR 보강기: 근거 부족(셀러태그·본문 없음) 상품의 상세 이미지에서 텍스트 추출
-  const ocr =
-    ocrRequested && process.env.OPENAI_API_KEY
-      ? new OcrReader(new OpenAI({ apiKey: process.env.OPENAI_API_KEY }))
-      : null;
+  const ocr = ocrRequested && openaiClient ? new OcrReader(openaiClient) : null;
   if (ocrRequested && !ocr) console.log('⚠️ OCR 요청됐으나 OPENAI_API_KEY 없음 → OCR 비활성');
   console.log(`OCR: ${ocr ? 'ON (근거 부족 상품의 상세이미지 보강)' : 'OFF'}`);
+  // 자가복구: 결정적 추출이 핵심 필드를 비웠을 때 원본을 LLM에 넘겨 복구(상시 안전망 — 평소 호출 0).
+  //   SELFHEAL_DEMO=name 으로 결정적값을 일부러 제거해 복구 경로를 재현(시연/검증용).
+  const selfHealDemo = (process.env.SELFHEAL_DEMO ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  const selfHealer = openaiClient
+    ? new SelfHealer(openaiClient, { fields: ['name', 'consumerPrice'], faultInject: selfHealDemo })
+    : null;
+  console.log(
+    `자가복구: ${selfHealer ? 'ON (결정적 추출 실패 시 원본 LLM 복구)' + (selfHealDemo.length ? ` · 데모주입 [${selfHealDemo.join(',')}]` : '') : 'OFF (OPENAI_API_KEY 없음)'}`,
+  );
   try {
     // ⚠️ 순서 중요: 네이버를 먼저 매칭. GodomallAdapter는 "비네이버 몰" 전반을 후보로 받아
     //    런타임에 고도몰 구조를 검증하는 fallback이므로 가장 마지막에 둔다.
@@ -51,6 +70,15 @@ async function main() {
     const adapter = adapters.find((a) => a.matches(storeUrl));
     if (!adapter) throw new Error(`지원 어댑터 없음: ${storeUrl}`);
     console.log(`어댑터: ${adapter.name} | 대상: ${storeUrl} | limit: ${limit}`);
+
+    // 출력 경로 — 증분 diff(이전 결과/캐시 로드)를 위해 미리 산출
+    const outDir = path.resolve('output');
+    fs.mkdirSync(outDir, { recursive: true });
+    const storeName =
+      storeUrl.match(/naver\.com\/([^/?#]+)/)?.[1] ??
+      new URL(storeUrl).hostname.replace(/^m\./, '').split('.')[0]; // happylandmall 등
+    const outPath = path.join(outDir, `${storeName}.json`);
+    const cachePath = path.join(outDir, `${storeName}.cache.json`);
 
     // 브라우저가 필요한 어댑터만 세션 오픈 (happyland는 순수 HTTP → 스킵)
     if (adapter.needsBrowser !== false) {
@@ -70,10 +98,32 @@ async function main() {
     const prices = adapter.fetchPrices ? await adapter.fetchPrices(storeUrl, ids) : new Map();
     if (adapter.fetchPrices) console.log(`가격 배치 조회: ${prices.size}/${ids.length}건`);
 
+    // 증분 재크롤: 이전 결과/캐시와 배치가격을 diff → 신규/가격변경 상품만 무거운 재크롤.
+    //   (최초 1회나 이전 산출물 없으면 전수 크롤로 자동 폴백)
+    let freshIds = ids;
+    let prevByProduct = new Map<string, NormalizedProduct[]>();
+    let incPlan: IncrementalPlan | null = null;
+    if (incremental) {
+      const prevRows = loadJson<NormalizedProduct[]>(outPath);
+      const prevCache = loadJson<CrawlCache>(cachePath);
+      if (prevRows?.length && prevCache) {
+        prevByProduct = groupByProduct(prevRows);
+        incPlan = planIncremental(ids, prices, prevCache, prevByProduct);
+        freshIds = incPlan.fresh;
+        const changed = Object.values(incPlan.reasons).filter((r) => r === 'price-changed').length;
+        const added = incPlan.fresh.length - changed;
+        console.log(
+          `♻️ 증분: 전체 ${ids.length} → 재크롤 ${freshIds.length}(신규 ${added}/가격변경 ${changed}) · 재사용 ${incPlan.reuse.length}`,
+        );
+      } else {
+        console.log('♻️ 증분 요청됐으나 이전 결과/캐시 없음 → 전수 크롤(최초 1회)');
+      }
+    }
+
     // 1-pass: 전 상품 수집 (묶음 보정은 전 상품이 모인 뒤 2-pass로)
     const rawRows: NormalizedProduct[] = [];
     const failures: { productNo: string; reason: string }[] = [];
-    for (const id of ids) {
+    for (const id of freshIds) {
       try {
         const raw = await adapter.fetchProduct(storeUrl, id);
         // 배치 가격 병합
@@ -92,6 +142,17 @@ async function main() {
             raw.detailTextSource = 'ocr';
             console.log(`  🔤 OCR 보강: detailText ${t.length}자 (${id})`);
           }
+        }
+        // 자가복구: 결정적 추출이 핵심 필드(name 등)를 비웠으면 원본을 LLM에 넘겨 복구.
+        //   평소엔 추출 성공이라 동작 안 함. SELFHEAL_DEMO 지정 시 실패를 강제해 시연/검증.
+        if (selfHealer) {
+          const hr = await selfHealer.heal(raw);
+          if (hr.injected.length) console.log(`  🔧 자가복구[데모]: 결정적값 제거 [${hr.injected.join(', ')}] (${id})`);
+          for (const r of hr.recovered)
+            console.log(
+              `  🔧 자가복구: ${r.field} = "${String(r.value).slice(0, 30)}" 복구 (conf ${r.confidence}${r.matchedInjected != null ? `, 원본일치 ${r.matchedInjected}` : ''})`,
+            );
+          for (const f of hr.failed) console.log(`  🔧 자가복구 실패: ${f.field} — ${f.reason}`);
         }
         const nps = await mapToQuedot(raw, storeUrl, enricher);
         console.log(`\n──────── 상품 ${id} (옵션 ${nps.length}건) ────────`);
@@ -147,20 +208,27 @@ async function main() {
     //   큐닷 제안서는 옵션 조합(SKU) 단위다: option1/2가 단일값이고 가격이 1:1로 붙어,
     //   옵션마다 가격·품절이 달라(한 상품 안에서도) SKU별로 펼쳐 정확도를 보존한다.
     //   '상품 수'(productNo)와 'SKU 수'는 품질 리포트에 병기(totalProducts/totalRows).
-    const results = rawRows;
+    // 증분: 재사용(이전 결과) + 신규/변경(이번 크롤)을 목록 순서로 병합. 전수면 rawRows 그대로.
+    let results: NormalizedProduct[];
+    if (incremental && incPlan) {
+      const freshByProduct = groupByProduct(rawRows);
+      results = [];
+      for (const id of ids) {
+        const rows = freshByProduct.get(String(id)) ?? prevByProduct.get(String(id));
+        if (rows) results.push(...rows);
+      }
+    } else {
+      results = rawRows;
+    }
     const allIssues: ValidationIssue[][] = results.map((np) => validate(np));
 
-    const outDir = path.resolve('output');
-    fs.mkdirSync(outDir, { recursive: true });
-    const storeName =
-      storeUrl.match(/naver\.com\/([^/?#]+)/)?.[1] ??
-      new URL(storeUrl).hostname.replace(/^m\./, '').split('.')[0]; // happylandmall 등
-    const outPath = path.join(outDir, `${storeName}.json`);
     fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
     const productCount = new Set(results.map((r) => r.meta.productNo)).size;
     console.log(
       `\n✓ 저장: ${outPath} (상품 ${productCount}건 / SKU ${results.length}건, 실패 ${failures.length}개)`,
     );
+    // 다음 증분용 캐시 저장(가격 시그널) — 전수/증분 모두 갱신
+    fs.writeFileSync(cachePath, JSON.stringify(buildCache(storeName, results), null, 2));
 
     // 정제 품질 리포트 (수치화) — 콘솔 + 파일
     const quality = buildQualityReport(storeName, results, allIssues, failures);

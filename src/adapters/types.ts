@@ -29,6 +29,11 @@ export interface RawProduct {
   detailImages?: string[]; // 상세 설명 이미지 URL (텍스트 없을 때 OCR 대상)
   naverMid?: number | string | null; // 네이버쇼핑 매칭 ID (lowest_price용)
   sourceUrl: string;
+  /** 결정적 추출이 실패한 필드를 LLM이 재분석(자가복구)하기 위한 원본 payload(JSON/HTML).
+   *  파이프라인 내 전용 — NormalizedProduct(출력)엔 복사되지 않는다. */
+  rawPayload?: string;
+  /** 자가복구로 채운 필드 → mapper가 provenance를 'ai-recovery'로 표기 */
+  recovered?: Record<string, { confidence: number }>;
 }
 
 export interface ListOptions {

@@ -1,0 +1,322 @@
+[
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "해피랜드 신생아 우주복",
+      "image_url": "https://img/c1.jpg",
+      "option1": "아이보리",
+      "option2": "60",
+      "consumer_price": 39000,
+      "sales_price": 39000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [],
+      "usp": null,
+      "category_group": [
+        "기타 리빙"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "option2": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "empty",
+        "reason": "해시태그 없음"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/",
+      "productNo": "C1",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.242Z",
+      "optionIndex": 0,
+      "optionTotal": 2,
+      "optionAxes": [
+        "색상",
+        "사이즈"
+      ],
+      "optionAxisCount": 2,
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "해피랜드 신생아 우주복",
+      "image_url": "https://img/c1.jpg",
+      "option1": "핑크",
+      "option2": "70",
+      "consumer_price": 41000,
+      "sales_price": 41000,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [],
+      "usp": null,
+      "category_group": [
+        "기타 리빙"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "option2": {
+        "method": "deterministic",
+        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+      },
+      "consumer_price": {
+        "method": "calculated",
+        "source": "정가 + 옵션추가금(2000)"
+      },
+      "sales_price": {
+        "method": "calculated",
+        "source": "판매가 + 옵션추가금(2000, 추가금엔 즉시할인 미적용 가정)"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "empty",
+        "reason": "해시태그 없음"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/",
+      "productNo": "C1",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.242Z",
+      "optionIndex": 1,
+      "optionTotal": 2,
+      "optionAxes": [
+        "색상",
+        "사이즈"
+      ],
+      "optionAxisCount": 2,
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": false,
+        "usp": true
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": null,
+      "name": "특가상품",
+      "image_url": "https://img/c2.jpg",
+      "option1": null,
+      "option2": null,
+      "consumer_price": 9900,
+      "sales_price": 9900,
+      "lowest_price": null,
+      "discount_rate": 0,
+      "hashtags": [],
+      "usp": null,
+      "category_group": [
+        "기타 리빙"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "empty",
+        "reason": "브랜드명 없음"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "empty",
+        "reason": "옵션 없음(단일상품) 또는 주관식 입력형 제외"
+      },
+      "option2": {
+        "method": "empty",
+        "reason": "옵션 없음"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "empty",
+        "reason": "해시태그 없음"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "상품명·태그·카테고리·상세본문 근거 모두 없음(환각 방지)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "상품명만 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/",
+      "productNo": "C2",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.242Z",
+      "soldOut": false,
+      "basis": {
+        "categoryPath": false,
+        "detailText": false,
+        "sellerTags": false,
+        "usp": false
+      }
+    }
+  },
+  {
+    "data": {
+      "brand_name": "해피랜드",
+      "name": "해피랜드 유아 논슬립 양말 3족",
+      "image_url": "https://img/c3.jpg",
+      "option1": null,
+      "option2": null,
+      "consumer_price": 12000,
+      "sales_price": 9900,
+      "lowest_price": null,
+      "discount_rate": 17.5,
+      "hashtags": [
+        "논슬립양말",
+        "유아양말"
+      ],
+      "usp": null,
+      "category_group": [
+        "기타 리빙"
+      ]
+    },
+    "provenance": {
+      "brand_name": {
+        "method": "deterministic"
+      },
+      "name": {
+        "method": "deterministic"
+      },
+      "image_url": {
+        "method": "deterministic"
+      },
+      "option1": {
+        "method": "empty",
+        "reason": "옵션 없음(단일상품) 또는 주관식 입력형 제외"
+      },
+      "option2": {
+        "method": "empty",
+        "reason": "옵션 없음"
+      },
+      "consumer_price": {
+        "method": "deterministic"
+      },
+      "sales_price": {
+        "method": "deterministic"
+      },
+      "discount_rate": {
+        "method": "calculated"
+      },
+      "lowest_price": {
+        "method": "empty",
+        "reason": "lowest_price 미조회(NAVER 키 없음/에누리 미활성). 매칭키 syncNvMid=N/A"
+      },
+      "hashtags": {
+        "method": "ai",
+        "source": "sellerTags+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      },
+      "usp": {
+        "method": "empty",
+        "reason": "USP 없음(근거 부족)"
+      },
+      "category_group": {
+        "method": "ai",
+        "source": "카테고리경로+상품명 / rule-baseline (LLM 미연동: 수식어 제거까지)"
+      }
+    },
+    "meta": {
+      "storeUrl": "https://m.happylandmall.com/",
+      "productNo": "C3",
+      "naverMid": null,
+      "crawledAt": "2026-06-11T20:07:41.242Z",
+      "soldOut": false,
+      "basis": {
+        "categoryPath": true,
+        "detailText": false,
+        "sellerTags": true,
+        "usp": true
+      }
+    }
+  }
+]

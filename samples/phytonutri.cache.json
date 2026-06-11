@@ -1,0 +1,22 @@
+{
+  "store": "phytonutri",
+  "updatedAt": "2026-06-11T20:07:41.240Z",
+  "products": {
+    "A1": {
+      "consumerPrice": 25000,
+      "salePrice": 19900
+    },
+    "A2": {
+      "consumerPrice": 32000,
+      "salePrice": 28000
+    },
+    "A3": {
+      "consumerPrice": 45000,
+      "salePrice": 45000
+    },
+    "A4": {
+      "consumerPrice": 28000,
+      "salePrice": 22000
+    }
+  }
+}

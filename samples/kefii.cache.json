@@ -1,0 +1,18 @@
+{
+  "store": "kefii",
+  "updatedAt": "2026-06-11T20:07:41.242Z",
+  "products": {
+    "B1": {
+      "consumerPrice": 32700,
+      "salePrice": 18300
+    },
+    "B2": {
+      "consumerPrice": 115010,
+      "salePrice": 89900
+    },
+    "B3": {
+      "consumerPrice": 24000,
+      "salePrice": 19000
+    }
+  }
+}

@@ -29,7 +29,9 @@ export interface PartnerProductCreateInput {
 }
 
 /** 필드를 어떻게 채웠는지 추적 (README "필드별 처리 설명" + 못 채운 사유) */
-export type FillMethod = 'deterministic' | 'calculated' | 'ai' | 'empty' | 'crawled';
+//   ai-recovery: 결정적 추출이 실패(셀렉터/JSON 구조 변경 등)해 원본 payload를 LLM이 재분석·복구한 값.
+//   일반 ai(분류·요약)와 구분해 "안전망 복구라 검수 필요"임을 정직하게 표기한다.
+export type FillMethod = 'deterministic' | 'calculated' | 'ai' | 'ai-recovery' | 'empty' | 'crawled';
 
 export interface FieldProvenance {
   method: FillMethod;
@@ -57,6 +59,8 @@ export interface NormalizedProduct {
     optionAxisCount?: number; // 이 SKU의 옵션 축 수 (3축 추적 — 큐닷 2칸 제약 사례)
     note?: string; // 옵션 상한 초과 등 비고
     soldOut?: boolean;
+    /** 자가복구(selfHeal)로 결정적 추출 실패를 LLM이 복구한 필드 — 검수 UI가 "확인 필요"로 강조 */
+    recovered?: { field: string; confidence: number }[];
     /** AI 필드의 실제 근거 유무 (validate가 환각 차단 판단에 사용) */
     basis?: {
       categoryPath: boolean;

@@ -77,6 +77,16 @@
   - 셸 죽은 키로 LLM 401 조용히 폴백하던 버그 발견·수정(dotenv override) → **단일상품 트레이스로 LLM 실동작 확인**
   - 검증: 샘플 5(kefii 3 + happyland 2) **오탐 0 · 과탈락 0**. 전수 규모는 전체 크롤 추가검증 권장. (상세: REFLECTION #7)
   - ⚠️ 기존 output(kefii·happyland·phytonutri)은 lowest_price 미반영 → 채우려면 `npm run crawl <url> <limit> enuri` 재크롤 필요
+- [x] **자가복구(self-heal)** ✅ 결정적 추출이 핵심 필드를 비우면 어댑터가 보존한 원본(`rawPayload`)을 LLM에 넘겨 복구. **name + consumer_price(네이버)**.
+  - 정직성 가드: ① **grounded**(문자열=substring / 숫자=digit-string 원본존재+양수 sanity → 지어내기 차단) ② provenance **`ai-recovery`** 표기(검수 대상, validate 관문 통과) ③ 평소 추출 성공 시 **LLM 호출 0**(상시 안전망, 빈 필드일 때만 동작)
+  - 데모/검증: `SELFHEAL_DEMO=name,consumerPrice` 로 결정적값 강제 제거 → 복구·원본일치 확인. mock 로직테스트 **20 pass**(`npm run test:selfheal`) + `tsc` 통과
+  - ⏸️ **옵션 복구는 의도적 보류**: optionCombos 빈값이 "옵션없음"인지 "추출실패"인지 트리거 모호 + LLM이 옵션 추가금을 만들면 "가격은 LLM에 안 맡긴다" 원칙 충돌. 정직한 이름만-복구 버전은 가능하나 ROI 낮아 보류.
+- [x] **증분 재크롤(incremental)** ✅ 이전 `output/{store}.json` + `{store}.cache.json`(가격 시그널)과 **목록+배치가격**을 diff → **신규/가격변경 상품만** 무거운 재크롤(상세·OCR·자가복구·최저가), 나머지는 이전 결과 재사용.
+  - 변경 시그널 = 가격(consumer/sale) + 존재. 비싼 작업(에누리 브라우저·OCR) 호출 절약 + 크롤 매너(호출 횟수↓). 최초 1회/이전 산출물 없으면 전수 폴백.
+  - 사용: `npm run crawl <url> <limit> incremental` / 검증: 순수로직 mock 테스트 **9 pass**(`npm run test:incremental`) + `tsc`
+- [x] **검증 하니스 + 합성 샘플** ✅ `npm run verify` — 라이브 크롤 없이 어려운 합성 케이스를 실제 코드(selfHeal→mapper→bundle→validate→incremental)에 통과시켜 전 기능 동작 단언. 스토어 3개×3~4상품 산출 → `samples/{store}.json`(+`.cache.json`, 설명 `samples/README.md`). 평가자가 키·세션 없이 검증 가능.
+- [ ] **서비스 배포** — 검수 UI(Next.js)를 Vercel에. (본인 병렬 진행 중)
+- [ ] **검수 UI** — output JSON 뷰어 + provenance/복구필드(`ai-recovery`)·공란사유 하이라이트(읽기+검수 플래그)
 
 ### F. 제출물 (필수)
 - [ ] 12. README (개요/실행법/기술선택/회고/샘플출력/필드별 처리설명)

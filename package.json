@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "crawl": "tsx src/main.ts"
+    "crawl": "tsx src/main.ts",
+    "verify": "tsx verify/verify-pipeline.ts",
+    "test:selfheal": "tsx verify/test-selfheal.ts",
+    "test:incremental": "tsx verify/test-incremental.ts"
   },
   "keywords": [],
   "author": "",

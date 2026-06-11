@@ -178,6 +178,9 @@ export class NaverStoreAdapter implements StoreAdapter {
       detailText: this.extractInlineDetailText(d),
       naverMid: d.epInfo?.syncNvMid ?? null,
       sourceUrl: d.productUrl ?? `${base}/products/${id}`,
+      // 자가복구용 원본 보존 — 결정적 추출이 빈 필드가 생기면 selfHeal이 이 원본을 LLM에 넘겨 복구.
+      //   (출력엔 미포함. 파이프라인 내 전용)
+      rawPayload: JSON.stringify(d),
     };
   }
 
