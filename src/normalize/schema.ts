@@ -62,5 +62,13 @@ export interface NormalizedProduct {
       sellerTags: boolean;
       usp: boolean; // USP 생성 근거 유무 (상세본문 또는 상품명+태그/카테고리)
     };
+    /** 묶음(골라담기/N+M) 상품일 때 정규화 근거 (bundle.ts가 채움) */
+    bundle?: {
+      quantity: number; // 묶음 개수 (5+2 → 7)
+      total: number; // 묶음 전체 결제금액 (예: 115010)
+      refProductNo: string | null; // 개당 정가 근거가 된 낱개 상품번호 (없으면 매칭 실패)
+      refUnitListPrice?: number | null; // 낱개 정가 (개당)
+      basis: string; // '단일정가' | '개당통일(매칭실패)'
+    };
   };
 }

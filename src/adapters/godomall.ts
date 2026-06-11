@@ -190,8 +190,9 @@ export class GodomallAdapter implements StoreAdapter {
     if (card?.hasOption) {
       try {
         optionCombos = await this.fetchOptions(origin, no, sourceUrl);
-      } catch {
-        /* 옵션 실패해도 상품 자체는 진행 (에러 격리) */
+      } catch (e: any) {
+        // 옵션 실패해도 상품 자체는 진행 (에러 격리). 단, 소리 없이 삼키지 말고 가시화.
+        console.warn(`  ⚠️ 옵션 조회 실패(${no}): ${e?.message ?? e} — 옵션 없이 진행`);
       }
     }
 
@@ -205,8 +206,9 @@ export class GodomallAdapter implements StoreAdapter {
         const $ = cheerio.load(html);
         detailImages = this.extractDetailImages(html, $);
         soldOut = this.extractSoldOut($);
-      } catch {
-        /* 상세 실패해도 상품 진행 (에러 격리) */
+      } catch (e: any) {
+        // 상세 실패해도 상품 진행 (에러 격리). 단, 소리 없이 삼키지 말고 가시화.
+        console.warn(`  ⚠️ 상세(goods_view) 조회 실패(${no}): ${e?.message ?? e} — 설명이미지/품절 감지 생략`);
       }
     }
 

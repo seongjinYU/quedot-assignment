@@ -149,14 +149,20 @@
   },
   "validationIssues": {
     "error": 0,
-    "warn": 99,
-    "byField": {
-      "option1": 39,
-      "option2": 60
-    }
+    "warn": 0,
+    "byField": {},
+    "byType": {}
+  },
+  "options": {
+    "soldOut": 52,
+    "singleProduct": 384,
+    "axis1": 0,
+    "axis2": 0,
+    "axis3plus": 0
   },
   "aiUsage": {
     "enriched": 384,
     "ruleFallback": 0
-  }
+  },
+  "failures": []
 }

@@ -13,8 +13,10 @@ import { OpenAiEnricher } from './ai/openai.js';
 import { OcrReader } from './ai/ocr.js';
 import { mapToQuedot } from './normalize/mapper.js';
 import { validate, type ValidationIssue } from './normalize/validate.js';
+import { resolveBundlePricing } from './normalize/bundle.js';
 import { buildQualityReport, printQualityReport } from './normalize/quality.js';
 import type { StoreAdapter } from './adapters/types.js';
+import type { NormalizedProduct } from './normalize/schema.js';
 import type { Enricher } from './ai/provider.js';
 
 const storeUrl = process.argv[2] ?? 'https://smartstore.naver.com/phytonutri';
@@ -65,9 +67,9 @@ async function main() {
     const prices = adapter.fetchPrices ? await adapter.fetchPrices(storeUrl, ids) : new Map();
     if (adapter.fetchPrices) console.log(`가격 배치 조회: ${prices.size}/${ids.length}건`);
 
-    const results = [];
-    const allIssues: ValidationIssue[][] = [];
-    let failCount = 0;
+    // 1-pass: 전 상품 수집 (묶음 보정은 전 상품이 모인 뒤 2-pass로)
+    const rawRows: NormalizedProduct[] = [];
+    const failures: { productNo: string; reason: string }[] = [];
     for (const id of ids) {
       try {
         const raw = await adapter.fetchProduct(storeUrl, id);
@@ -91,19 +93,36 @@ async function main() {
         const nps = await mapToQuedot(raw, storeUrl, enricher);
         console.log(`\n──────── 상품 ${id} (옵션 ${nps.length}건) ────────`);
         for (const np of nps) {
-          const issues = validate(np);
-          results.push(np);
-          allIssues.push(issues);
+          rawRows.push(np);
           const opt = [np.data.option1, np.data.option2].filter(Boolean).join(' / ') || '(옵션없음)';
           console.log(`  • ${opt} | 정가 ${np.data.consumer_price} → 판매 ${np.data.sales_price} (${np.data.discount_rate}%)`);
-          if (issues.length) console.log('    🔎', JSON.stringify(issues));
         }
       } catch (e: any) {
-        // 에러 격리: 한 상품 실패해도 전체 중단 없이 다음으로
-        failCount++;
+        // 에러 격리: 한 상품 실패해도 전체 중단 없이 다음으로 (실패 목록은 품질 리포트에 기록)
+        failures.push({ productNo: String(id), reason: e?.message ?? String(e) });
         console.error(`  ✗ ${id} 실패: ${e.message}`);
       }
     }
+
+    // 2-pass: 묶음(골라담기/N+M) 가격 보정 — 낱개 상품 매칭 + 숫자 교차검증으로 할인 복원
+    const bundleReport = resolveBundlePricing(rawRows);
+    if (bundleReport.bundles > 0) {
+      console.log(`\n🔗 묶음 보정: ${bundleReport.bundles}개 중 매칭 ${bundleReport.matched} / 폴백 ${bundleReport.fallback}`);
+      for (const d of bundleReport.details) {
+        console.log(
+          d.result === 'matched'
+            ? `   ✓ ${d.productNo} ${(d.name ?? '').slice(0, 28)} → 낱개 ${d.ref} 기준 할인 ${d.discount}%`
+            : `   · ${d.productNo} ${(d.name ?? '').slice(0, 28)} → 개당 통일(낱개 매칭 실패)`,
+        );
+      }
+    }
+
+    // 3-pass: 검증(단일 관문) — 묶음 보정이 반영된 최종 산출물(SKU 단위)에 적용.
+    //   큐닷 제안서는 옵션 조합(SKU) 단위다: option1/2가 단일값이고 가격이 1:1로 붙어,
+    //   옵션마다 가격·품절이 달라(한 상품 안에서도) SKU별로 펼쳐 정확도를 보존한다.
+    //   '상품 수'(productNo)와 'SKU 수'는 품질 리포트에 병기(totalProducts/totalRows).
+    const results = rawRows;
+    const allIssues: ValidationIssue[][] = results.map((np) => validate(np));
 
     const outDir = path.resolve('output');
     fs.mkdirSync(outDir, { recursive: true });
@@ -112,10 +131,13 @@ async function main() {
       new URL(storeUrl).hostname.replace(/^m\./, '').split('.')[0]; // happylandmall 등
     const outPath = path.join(outDir, `${storeName}.json`);
     fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
-    console.log(`\n✓ 저장: ${outPath} (${results.length}건, 실패 ${failCount}개)`);
+    const productCount = new Set(results.map((r) => r.meta.productNo)).size;
+    console.log(
+      `\n✓ 저장: ${outPath} (상품 ${productCount}건 / SKU ${results.length}건, 실패 ${failures.length}개)`,
+    );
 
     // 정제 품질 리포트 (수치화) — 콘솔 + 파일
-    const quality = buildQualityReport(storeName, results, allIssues);
+    const quality = buildQualityReport(storeName, results, allIssues, failures);
     printQualityReport(quality);
     const qPath = path.join(outDir, `${storeName}.quality.json`);
     fs.writeFileSync(qPath, JSON.stringify(quality, null, 2));

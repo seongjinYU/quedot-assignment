@@ -26,6 +26,8 @@ export interface QualityReport {
     axis3plus: number; // 3축+ (큐닷 2칸 제약 → option2 결합 사례)
   };
   aiUsage: { enriched: number; ruleFallback: number };
+  // 수집 실패로 산출물에서 드롭된 상품 목록 (견고성 가시화 — "안 깨졌다"가 아니라 "무엇이 왜 빠졌나")
+  failures: { productNo: string; reason: string }[];
 }
 
 // 이슈 유형 → 사람이 읽는 라벨
@@ -54,6 +56,7 @@ export function buildQualityReport(
   store: string,
   rows: NormalizedProduct[],
   allIssues: ValidationIssue[][],
+  failures: { productNo: string; reason: string }[] = [],
 ): QualityReport {
   const productNos = new Set(rows.map((r) => r.meta.productNo));
   const fillRate: QualityReport['fillRate'] = {};
@@ -120,6 +123,7 @@ export function buildQualityReport(
     validationIssues: vi,
     options,
     aiUsage: { enriched, ruleFallback },
+    failures,
   };
 }
 
@@ -143,6 +147,13 @@ export function printQualityReport(q: QualityReport): void {
   if (o.axis3plus > 0) console.log(`  ⚠️ 3축+ ${o.axis3plus}건: 큐닷 option1/2(2칸) 제약 → option2에 결합`);
 
   console.log(`\n[AI 사용] openai enrich ${q.aiUsage.enriched}행 / rule fallback ${q.aiUsage.ruleFallback}행`);
+
+  if (q.failures.length) {
+    console.log(`\n[수집 실패] ${q.failures.length}건 (상품 단위 드롭 — 전체는 중단 없이 계속)`);
+    q.failures.slice(0, 10).forEach((f) => console.log(`  ✗ ${f.productNo}: ${f.reason}`));
+    if (q.failures.length > 10) console.log(`  …외 ${q.failures.length - 10}건 (전체는 quality.json 참조)`);
+  }
+
   if (Object.keys(q.emptyReasons).length) {
     console.log(`\n[주요 공란 사유 Top]`);
     Object.entries(q.emptyReasons).sort((a, b) => b[1] - a[1]).slice(0, 8)

@@ -45,16 +45,16 @@
       "filled": 103,
       "rate": "100.0%",
       "method": {
-        "deterministic": 78,
-        "calculated": 25
+        "deterministic": 68,
+        "calculated": 35
       }
     },
     "sales_price": {
       "filled": 103,
       "rate": "100.0%",
       "method": {
-        "deterministic": 78,
-        "calculated": 25
+        "deterministic": 68,
+        "calculated": 35
       }
     },
     "lowest_price": {
@@ -65,11 +65,10 @@
       }
     },
     "discount_rate": {
-      "filled": 93,
-      "rate": "90.3%",
+      "filled": 103,
+      "rate": "100.0%",
       "method": {
-        "calculated": 93,
-        "empty": 10
+        "calculated": 103
       }
     },
     "hashtags": {
@@ -156,23 +155,13 @@
     "lowest_price: 가산점 미구현. 매칭키 syncNvMid=82523856425 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
     "lowest_price: 가산점 미구현. 매칭키 syncNvMid=81943912968 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
     "lowest_price: 가산점 미구현. 매칭키 syncNvMid=81909070342 확보 → 네이버쇼핑 실조회로 확장 가능": 1,
-    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=81029952791 확보 → 네이버쇼핑 실조회로 확장 가능": 2,
-    "discount_rate: 할인율 범위 밖(-600) 무효화": 5,
-    "discount_rate: 할인율 범위 밖(-300) 무효화": 5
+    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=81029952791 확보 → 네이버쇼핑 실조회로 확장 가능": 2
   },
   "validationIssues": {
-    "error": 10,
-    "warn": 18,
-    "byField": {
-      "option1": 8,
-      "sales_price": 10,
-      "discount_rate": 10
-    },
-    "byType": {
-      "option_cleanup": 8,
-      "price_inverted": 10,
-      "discount_range": 10
-    }
+    "error": 0,
+    "warn": 0,
+    "byField": {},
+    "byType": {}
   },
   "options": {
     "soldOut": 4,
@@ -184,5 +173,6 @@
   "aiUsage": {
     "enriched": 103,
     "ruleFallback": 0
-  }
+  },
+  "failures": []
 }

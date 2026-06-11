@@ -6765,10 +6765,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_283/17507340536370gmEq_JPEG/48110959973626636_274162654.jpg",
       "option1": "핑크웨이브 (소비기한 2026-12-22)",
       "option2": null,
-      "consumer_price": 16430,
-      "sales_price": 115010,
+      "consumer_price": 32000,
+      "sales_price": 16430,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 48.7,
       "hashtags": [
         "지구력증진",
         "건강식품",
@@ -6799,14 +6799,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 115010 ÷ 7개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-600) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -6842,6 +6844,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 7,
+        "total": 115010,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
@@ -6852,10 +6861,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_283/17507340536370gmEq_JPEG/48110959973626636_274162654.jpg",
       "option1": "제주바이브 (소비기한 2026-12-22)",
       "option2": null,
-      "consumer_price": 16430,
-      "sales_price": 115010,
+      "consumer_price": 32000,
+      "sales_price": 16430,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 48.7,
       "hashtags": [
         "지구력증진",
         "건강식품",
@@ -6886,14 +6895,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 115010 ÷ 7개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-600) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -6929,6 +6940,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 7,
+        "total": 115010,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
@@ -6939,10 +6957,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_283/17507340536370gmEq_JPEG/48110959973626636_274162654.jpg",
       "option1": "블랙스피릿 (소비기한 2026-12-22)",
       "option2": null,
-      "consumer_price": 16430,
-      "sales_price": 115010,
+      "consumer_price": 32000,
+      "sales_price": 16430,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 48.7,
       "hashtags": [
         "지구력증진",
         "건강식품",
@@ -6973,14 +6991,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 115010 ÷ 7개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-600) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -7016,6 +7036,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 7,
+        "total": 115010,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
@@ -7026,10 +7053,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_283/17507340536370gmEq_JPEG/48110959973626636_274162654.jpg",
       "option1": "퍼플윈드",
       "option2": null,
-      "consumer_price": 16430,
-      "sales_price": 115010,
+      "consumer_price": 32000,
+      "sales_price": 16430,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 48.7,
       "hashtags": [
         "지구력증진",
         "건강식품",
@@ -7060,14 +7087,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 115010 ÷ 7개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-600) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -7103,6 +7132,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 7,
+        "total": 115010,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
@@ -7113,10 +7149,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_283/17507340536370gmEq_JPEG/48110959973626636_274162654.jpg",
       "option1": "스카이 블루러쉬",
       "option2": null,
-      "consumer_price": 16430,
-      "sales_price": 115010,
+      "consumer_price": 32000,
+      "sales_price": 16430,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 48.7,
       "hashtags": [
         "지구력증진",
         "건강식품",
@@ -7147,14 +7183,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 115010 ÷ 7개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-600) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -7190,6 +7228,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 7,
+        "total": 115010,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
@@ -7200,10 +7245,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_226/17507340803961NYAt_JPEG/97367881197316219_844322681.jpg",
       "option1": "핑크웨이브 (소비기한 2026-12-22)",
       "option2": null,
-      "consumer_price": 17250,
-      "sales_price": 69000,
+      "consumer_price": 32000,
+      "sales_price": 17250,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 46.1,
       "hashtags": [
         "지구력증진",
         "시즈노프",
@@ -7236,14 +7281,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 69000 ÷ 4개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-300) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -7279,6 +7326,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 4,
+        "total": 69000,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
@@ -7289,10 +7343,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_226/17507340803961NYAt_JPEG/97367881197316219_844322681.jpg",
       "option1": "제주바이브 (소비기한 2026-12-22)",
       "option2": null,
-      "consumer_price": 17250,
-      "sales_price": 69000,
+      "consumer_price": 32000,
+      "sales_price": 17250,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 46.1,
       "hashtags": [
         "지구력증진",
         "시즈노프",
@@ -7325,14 +7379,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 69000 ÷ 4개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-300) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -7368,6 +7424,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 4,
+        "total": 69000,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
@@ -7378,10 +7441,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_226/17507340803961NYAt_JPEG/97367881197316219_844322681.jpg",
       "option1": "블랙스피릿 (소비기한 2026-12-22)",
       "option2": null,
-      "consumer_price": 17250,
-      "sales_price": 69000,
+      "consumer_price": 32000,
+      "sales_price": 17250,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 46.1,
       "hashtags": [
         "지구력증진",
         "시즈노프",
@@ -7414,14 +7477,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 69000 ÷ 4개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-300) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -7457,6 +7522,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 4,
+        "total": 69000,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
@@ -7467,10 +7539,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_226/17507340803961NYAt_JPEG/97367881197316219_844322681.jpg",
       "option1": "퍼플윈드",
       "option2": null,
-      "consumer_price": 17250,
-      "sales_price": 69000,
+      "consumer_price": 32000,
+      "sales_price": 17250,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 46.1,
       "hashtags": [
         "지구력증진",
         "시즈노프",
@@ -7503,14 +7575,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 69000 ÷ 4개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-300) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -7546,6 +7620,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 4,
+        "total": 69000,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
@@ -7556,10 +7637,10 @@
       "image_url": "https://shop-phinf.pstatic.net/20250624_226/17507340803961NYAt_JPEG/97367881197316219_844322681.jpg",
       "option1": "스카이 블루러쉬",
       "option2": null,
-      "consumer_price": 17250,
-      "sales_price": 69000,
+      "consumer_price": 32000,
+      "sales_price": 17250,
       "lowest_price": null,
-      "discount_rate": null,
+      "discount_rate": 46.1,
       "hashtags": [
         "지구력증진",
         "시즈노프",
@@ -7592,14 +7673,16 @@
         "reason": "단일 옵션 축"
       },
       "consumer_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "낱개상품 13549521293 정가 기준(묶음 개당 정가 추론)"
       },
       "sales_price": {
-        "method": "deterministic"
+        "method": "calculated",
+        "source": "묶음 개당가(총액 69000 ÷ 4개)"
       },
       "discount_rate": {
-        "method": "empty",
-        "reason": "할인율 범위 밖(-300) 무효화"
+        "method": "calculated",
+        "source": "낱개 정가 대비 묶음 개당 할인"
       },
       "lowest_price": {
         "method": "empty",
@@ -7635,6 +7718,13 @@
         "detailText": false,
         "sellerTags": true,
         "usp": true
+      },
+      "bundle": {
+        "quantity": 4,
+        "total": 69000,
+        "refProductNo": "13549521293",
+        "refUnitListPrice": 32000,
+        "basis": "단일정가"
       }
     }
   },
