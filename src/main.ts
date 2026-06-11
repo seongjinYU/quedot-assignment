@@ -14,6 +14,9 @@ import { OcrReader } from './ai/ocr.js';
 import { mapToQuedot } from './normalize/mapper.js';
 import { validate, type ValidationIssue } from './normalize/validate.js';
 import { resolveBundlePricing } from './normalize/bundle.js';
+import { NaverShopClient, resolveLowestPrices } from './ai/lowestPrice.js';
+import { EnuriClient } from './ai/enuri.js';
+import { OpenAiMatchJudge } from './ai/productMatch.js';
 import { buildQualityReport, printQualityReport } from './normalize/quality.js';
 import type { StoreAdapter } from './adapters/types.js';
 import type { NormalizedProduct } from './normalize/schema.js';
@@ -115,6 +118,29 @@ async function main() {
             : `   · ${d.productNo} ${(d.name ?? '').slice(0, 28)} → 개당 통일(낱개 매칭 실패)`,
         );
       }
+    }
+
+    // 2.5-pass: lowest_price 실조회 (가산점) — 네이버 API(syncNvMid 정확매칭) + 에누리(쿠팡 포함, opt-in).
+    //   오탐가드(브랜드·토큰·수량단위·가격 sanity) 통과만 채움, 실패는 null+사유. 두 소스 중 더 낮은 값.
+    //   쿠팡 직접크롤·파트너스API는 막혀(REFLECTION) 에누리 가격비교로 우회 — 쿠팡 등 오픈마켓가 확보.
+    const naverKey = process.env.NAVER_CLIENT_ID && process.env.NAVER_CLIENT_SECRET;
+    const enuriEnabled = process.argv.includes('enuri') || process.env.ENABLE_ENURI === 'true';
+    if (naverKey || enuriEnabled) {
+      const shopClient = naverKey ? new NaverShopClient(process.env.NAVER_CLIENT_ID!, process.env.NAVER_CLIENT_SECRET!) : null;
+      const enuriClient = enuriEnabled ? new EnuriClient() : undefined;
+      // 비-mid(휴리스틱) 후보의 동일상품 최종 판정 = LLM. 키 없으면 약한 후보는 보수적으로 제외(오탐 방지).
+      const matchJudge = process.env.OPENAI_API_KEY ? new OpenAiMatchJudge(process.env.OPENAI_API_KEY) : undefined;
+      if (enuriEnabled && !matchJudge) console.log('  ⚠️ OPENAI_API_KEY 없음 → 에누리/비-mid 후보는 LLM 검수 불가로 제외(공란↑)');
+      try {
+        const lp = await resolveLowestPrices(rawRows, shopClient, { enuri: enuriClient, rateLimitMs: 120, matchJudge });
+        console.log(
+          `\n💰 최저가 실조회: ${lp.attempted}상품 → 채움 ${lp.resolved}(네이버 ${lp.bySource.naver}/에누리 ${lp.bySource.enuri}/판매처 ${lp.bySource.store}) · 미발견 ${lp.nullCount}`,
+        );
+      } finally {
+        await enuriClient?.close();
+      }
+    } else {
+      console.log('\n💰 최저가: NAVER 키 없음 + 에누리 미활성 → lowest_price 공란 유지');
     }
 
     // 3-pass: 검증(단일 관문) — 묶음 보정이 반영된 최종 산출물(SKU 단위)에 적용.

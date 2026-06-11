@@ -3,7 +3,7 @@
 > 작업 시작 전 이 파일로 현재 상태 확인. 작업 완료 시 체크 갱신.
 > 규칙은 CLAUDE.md, 정찰 정보는 RECON_NOTES.md 참조.
 
-마지막 업데이트: 2026-06-11
+마지막 업데이트: 2026-06-12
 
 ---
 
@@ -71,7 +71,12 @@
   - ⚠️ 기존 output(kefii·happyland)은 옛 품질포맷 → 새 필드(byType·options) 반영하려면 재크롤 필요
 
 ### E. 가산점 (여유 시)
-- [ ] 11. lowest_price (네이버쇼핑 실조회, syncNvMid 매칭, 오탐 방지)
+- [x] **11. lowest_price 실조회** ✅ 네이버쇼핑 OpenAPI(syncNvMid 정확매칭) + 에누리(쿠팡 포함 오픈마켓, 최저가순 DOM 추출) **병렬** 조회. **오탐 방지 3층**:
+  - 결정적 가드(가격sanity·브랜드·토큰·단위·**N+M 묶음**) → 강한 신호(**mid·모델코드**)는 확정 → 코드·mid 없는 모호한 후보만 **LLM 동일상품 판정**(여행용·단품·샘플 의미 차단, 키워드 리스트 없이)
+  - 쿠폰가 제외(③ 비쿠폰만) / 시장최저>판매가면 판매가 채움(④ 더 낮은=사실) / provenance `pid==mid`·`모델코드확정`·`LLM확인`·`null+사유`
+  - 셸 죽은 키로 LLM 401 조용히 폴백하던 버그 발견·수정(dotenv override) → **단일상품 트레이스로 LLM 실동작 확인**
+  - 검증: 샘플 5(kefii 3 + happyland 2) **오탐 0 · 과탈락 0**. 전수 규모는 전체 크롤 추가검증 권장. (상세: REFLECTION #7)
+  - ⚠️ 기존 output(kefii·happyland·phytonutri)은 lowest_price 미반영 → 채우려면 `npm run crawl <url> <limit> enuri` 재크롤 필요
 
 ### F. 제출물 (필수)
 - [ ] 12. README (개요/실행법/기술선택/회고/샘플출력/필드별 처리설명)
@@ -94,4 +99,4 @@
 | sales_price / discount_rate | ✅ 가격 배치(product-benefits) |
 | option1 / option2 | ✅ 조합 펼침 + 추가금 반영 (묶음·증정 구조화는 LLM 단계) |
 | usp | ⏳ 7번 (LLM) |
-| lowest_price | ⏳ 11번 (가산점) |
+| lowest_price | ✅ 실조회(네이버쇼핑+에누리) · mid/모델코드/LLM 3층 매칭(오탐 방지) |

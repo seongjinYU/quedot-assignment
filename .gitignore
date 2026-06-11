@@ -26,3 +26,8 @@ option_recon.json
 # 개인 전략 문서 (제출 제외)
 큐닷_과제_전략.md
 큐닷_과제_실행계획.md
+coupang-session/
+coupang-state.json
+
+# 탐침/디버그 스크립트 + 외부 페이지 덤프 (제출 제외)
+scripts/

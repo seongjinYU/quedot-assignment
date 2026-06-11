@@ -29,14 +29,16 @@ export interface PartnerProductCreateInput {
 }
 
 /** 필드를 어떻게 채웠는지 추적 (README "필드별 처리 설명" + 못 채운 사유) */
-export type FillMethod = 'deterministic' | 'calculated' | 'ai' | 'empty';
+export type FillMethod = 'deterministic' | 'calculated' | 'ai' | 'empty' | 'crawled';
 
 export interface FieldProvenance {
   method: FillMethod;
   /** empty일 때 사유 (지어내지 않고 공란 처리한 이유) */
   reason?: string;
-  /** ai일 때 근거(원본 소스) */
+  /** ai/calculated/crawled일 때 근거(원본 소스) */
   source?: string;
+  /** crawled(외부 실조회: lowest_price)일 때 수집 시각 — 명세 "출처·수집 시각 함께 기록" */
+  fetchedAt?: string;
 }
 
 /** 출력 1건 = 정규화 결과 + 처리 메타 */
