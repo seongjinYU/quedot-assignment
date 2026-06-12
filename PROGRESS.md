@@ -62,6 +62,9 @@
   - provider(openai/rule/fallback) 경로 무관하게 최종 산출물은 반드시 관문 통과
 - [x] (옵션 견고성) **단일 축 옵션 결정적 처리** ✅ names 1개면 LLM 미호출→룰(결정적). 멀쩡한 단일 옵션을 LLM이 2칸으로 억지분해하다 토큰 중복(예: "드롭스/드롭스/오프너O")시키는 환각 차단. 다축만 LLM 재배치. (검증: 지니어스뉴 3조합 결정적 일치)
 - [x] (옵션 provenance 정직화) ✅ 옵션 라벨을 실제 경로 기준으로: 단일 축/rule-baseline→`deterministic`(룰 정규화), 다축+LLM→`ai`(다축 의미배치). 기존엔 단일 축도 `ai/openai`로 거짓표기되던 것 수정 (REFLECTION #5 정직성 원칙)
+- [x] **(옵션 LLM 재설계 — 데이터 기반)** ✅ "LLM 의미배치가 밥값 하나?"를 실데이터로 검증(`npm run compare:options`) → ≤2축에선 LLM이 **상품명 누출·뭉침 오염**만 추가함을 확인. 결정: **≤2축은 룰(위치)·LLM 미사용**, **3축+만 LLM**.
+  - 3축 오염 차단: LLM 출력에 **grounded·무손실 가드**(self-heal과 같은 원칙) — ① 입력 값 모두 포함(무손실) ② 입력값·구분자 외 잔여 텍스트 없음(무오염). 위반 시 **위치 기반 폴백** → 결과는 항상 "깨끗한 LLM" 또는 "깨끗한 위치값", **절대 안 깨짐**.
+  - provenance도 실제 경로(`aiPlaced`)로: 3축 가드통과만 `ai`, ≤2축·폴백은 `deterministic`. 검증: `npm run test:options` **10 pass**(오염·손실·라우팅) + 비교 재실행 시 ≤2축 오염 0.
 - [x] 8. 엣지케이스 처리 ✅ 3축 추적(meta.optionAxisCount + 품질 카운트), **품절 양쪽 커버**:
   - 네이버: 상품단위(productStatusType≠SALE — 옵션없는 단일상품도) + 옵션단위(usable/stock). 검증: phytonutri 2페이지 품절 4건 정확
   - 고도몰: 상품단위(구매버튼 클래스 detail_prd_no_btn/btn_add_soldout — fetchDetail시) + 옵션 텍스트마커. 검증: 6873=품절·641=정상

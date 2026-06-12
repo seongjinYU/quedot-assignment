@@ -6,8 +6,11 @@
   "scripts": {
     "crawl": "tsx src/main.ts",
     "verify": "tsx verify/verify-pipeline.ts",
+    "test": "tsx verify/test-selfheal.ts && tsx verify/test-incremental.ts && tsx verify/test-option-guard.ts",
     "test:selfheal": "tsx verify/test-selfheal.ts",
-    "test:incremental": "tsx verify/test-incremental.ts"
+    "test:incremental": "tsx verify/test-incremental.ts",
+    "test:options": "tsx verify/test-option-guard.ts",
+    "compare:options": "tsx verify/compare-options.ts"
   },
   "keywords": [],
   "author": "",

@@ -31,7 +31,7 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "empty",
@@ -68,7 +68,7 @@
       "storeUrl": "https://brand.naver.com/kefii",
       "productNo": "B1",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.241Z",
+      "crawledAt": "2026-06-12T02:32:12.554Z",
       "optionIndex": 0,
       "optionTotal": 1,
       "optionAxisCount": 1,
@@ -118,11 +118,11 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "consumer_price": {
         "method": "deterministic"
@@ -154,7 +154,7 @@
       "storeUrl": "https://brand.naver.com/kefii",
       "productNo": "B2",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.241Z",
+      "crawledAt": "2026-06-12T02:32:12.555Z",
       "optionIndex": 0,
       "optionTotal": 1,
       "optionAxisCount": 2,
@@ -198,11 +198,11 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "consumer_price": {
         "method": "deterministic"
@@ -234,7 +234,7 @@
       "storeUrl": "https://brand.naver.com/kefii",
       "productNo": "B3",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.241Z",
+      "crawledAt": "2026-06-12T02:32:12.555Z",
       "optionIndex": 0,
       "optionTotal": 2,
       "optionAxes": [
@@ -282,11 +282,11 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "consumer_price": {
         "method": "calculated",
@@ -320,7 +320,7 @@
       "storeUrl": "https://brand.naver.com/kefii",
       "productNo": "B3",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.241Z",
+      "crawledAt": "2026-06-12T02:32:12.555Z",
       "optionIndex": 1,
       "optionTotal": 2,
       "optionAxes": [

@@ -31,11 +31,11 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "consumer_price": {
         "method": "deterministic"
@@ -67,7 +67,7 @@
       "storeUrl": "https://smartstore.naver.com/phytonutri",
       "productNo": "A1",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.236Z",
+      "crawledAt": "2026-06-12T02:32:12.551Z",
       "optionIndex": 0,
       "optionTotal": 3,
       "optionAxes": [
@@ -117,11 +117,11 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "consumer_price": {
         "method": "calculated",
@@ -155,7 +155,7 @@
       "storeUrl": "https://smartstore.naver.com/phytonutri",
       "productNo": "A1",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.237Z",
+      "crawledAt": "2026-06-12T02:32:12.552Z",
       "optionIndex": 1,
       "optionTotal": 3,
       "optionAxes": [
@@ -205,11 +205,11 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "consumer_price": {
         "method": "calculated",
@@ -243,7 +243,7 @@
       "storeUrl": "https://smartstore.naver.com/phytonutri",
       "productNo": "A1",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.237Z",
+      "crawledAt": "2026-06-12T02:32:12.552Z",
       "optionIndex": 2,
       "optionTotal": 3,
       "optionAxes": [
@@ -293,7 +293,7 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "empty",
@@ -329,7 +329,7 @@
       "storeUrl": "https://smartstore.naver.com/phytonutri",
       "productNo": "A2",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.238Z",
+      "crawledAt": "2026-06-12T02:32:12.552Z",
       "optionIndex": 0,
       "optionTotal": 1,
       "optionAxisCount": 1,
@@ -415,7 +415,7 @@
       "storeUrl": "https://smartstore.naver.com/phytonutri",
       "productNo": "A3",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.238Z",
+      "crawledAt": "2026-06-12T02:32:12.552Z",
       "soldOut": true,
       "basis": {
         "categoryPath": true,
@@ -456,7 +456,7 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "empty",
@@ -492,7 +492,7 @@
       "storeUrl": "https://smartstore.naver.com/phytonutri",
       "productNo": "A4",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.238Z",
+      "crawledAt": "2026-06-12T02:32:12.552Z",
       "optionIndex": 0,
       "optionTotal": 2,
       "optionAxes": [
@@ -539,7 +539,7 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "empty",
@@ -577,7 +577,7 @@
       "storeUrl": "https://smartstore.naver.com/phytonutri",
       "productNo": "A4",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.238Z",
+      "crawledAt": "2026-06-12T02:32:12.552Z",
       "optionIndex": 1,
       "optionTotal": 2,
       "optionAxes": [

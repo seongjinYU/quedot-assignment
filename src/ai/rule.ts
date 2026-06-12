@@ -65,6 +65,7 @@ export class RuleEnricher implements Enricher {
       return {
         option1: cleaned[0] ?? null,
         option2: cleaned.length > 1 ? cleaned.slice(1).join(' / ') : null,
+        aiPlaced: false, // 위치 기반(결정적)
       };
     });
   }

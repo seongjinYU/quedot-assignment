@@ -21,6 +21,9 @@ export interface OptionNormalizeInput {
 export interface OptionNormalized {
   option1: string | null; // 종류/맛/색상
   option2: string | null; // 구성/수량/용량
+  /** true=LLM 의미배치(3축+, grounded·무손실 가드 통과) / false·미지정=룰(위치) 또는 가드 폴백.
+   *  provenance를 실제 처리 경로에 맞춰 정직하게 표기하기 위함. */
+  aiPlaced?: boolean;
 }
 
 export interface Enricher {

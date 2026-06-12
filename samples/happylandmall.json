@@ -28,11 +28,11 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "consumer_price": {
         "method": "deterministic"
@@ -64,7 +64,7 @@
       "storeUrl": "https://m.happylandmall.com/",
       "productNo": "C1",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.242Z",
+      "crawledAt": "2026-06-12T02:32:12.556Z",
       "optionIndex": 0,
       "optionTotal": 2,
       "optionAxes": [
@@ -110,11 +110,11 @@
       },
       "option1": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "option2": {
         "method": "deterministic",
-        "source": "옵션 정규화(룰: 수식어·이모지 제거)"
+        "source": "옵션 정규화(룰: 위치 기반·수식어 제거)"
       },
       "consumer_price": {
         "method": "calculated",
@@ -148,7 +148,7 @@
       "storeUrl": "https://m.happylandmall.com/",
       "productNo": "C1",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.242Z",
+      "crawledAt": "2026-06-12T02:32:12.556Z",
       "optionIndex": 1,
       "optionTotal": 2,
       "optionAxes": [
@@ -231,7 +231,7 @@
       "storeUrl": "https://m.happylandmall.com/",
       "productNo": "C2",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.242Z",
+      "crawledAt": "2026-06-12T02:32:12.556Z",
       "soldOut": false,
       "basis": {
         "categoryPath": false,
@@ -309,7 +309,7 @@
       "storeUrl": "https://m.happylandmall.com/",
       "productNo": "C3",
       "naverMid": null,
-      "crawledAt": "2026-06-11T20:07:41.242Z",
+      "crawledAt": "2026-06-12T02:32:12.556Z",
       "soldOut": false,
       "basis": {
         "categoryPath": true,

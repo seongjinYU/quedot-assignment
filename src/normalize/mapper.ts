@@ -96,15 +96,14 @@ function buildRow(
   if (combo) {
     option1 = norm?.option1 ?? null;
     option2 = norm?.option2 ?? null;
-    // provenance 정직화: 실제 처리 경로를 표기한다.
-    //   - 단일 축(값 1개) 또는 rule-baseline → 룰(결정적): 수식어·이모지 제거까지
-    //   - 다축(값 2개+) + LLM enricher → ai: 종류/구성 의미 배치를 LLM이 수행
-    const axisCount = combo.names.filter(Boolean).length;
-    const usedLLM = enricherKind !== 'rule-baseline' && axisCount >= 2;
+    // provenance 정직화: enricher가 알려준 실제 처리 경로(aiPlaced)를 그대로 표기한다.
+    //   - aiPlaced=true  → ai: 3축+ 옵션을 LLM이 의미배치(grounded·무손실 가드 통과)
+    //   - aiPlaced=false → deterministic: ≤2축 룰(위치) 또는 LLM 가드 폴백(둘 다 결정적)
+    const usedLLM = norm?.aiPlaced === true;
     const optProv = (): FieldProvenance =>
       usedLLM
-        ? { method: 'ai', source: `옵션 다축 의미배치 / ${enricherKind}` }
-        : { method: 'deterministic', source: '옵션 정규화(룰: 수식어·이모지 제거)' };
+        ? { method: 'ai', source: `옵션 3축 의미배치(grounded 가드) / ${enricherKind}` }
+        : { method: 'deterministic', source: '옵션 정규화(룰: 위치 기반·수식어 제거)' };
     prov.option1 = option1 ? optProv() : empty('옵션값 없음');
     prov.option2 = option2 ? optProv() : empty('단일 옵션 축');
   } else {

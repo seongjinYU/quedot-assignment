@@ -10,7 +10,7 @@ import type {
   OptionNormalized,
 } from './provider.js';
 import { CATEGORY_GROUPS } from '../normalize/schema.js';
-import { RuleEnricher } from './rule.js';
+import { RuleEnricher, cleanOptionText } from './rule.js';
 
 export class OpenAiEnricher implements Enricher {
   readonly kind = 'openai';
@@ -84,47 +84,46 @@ export class OpenAiEnricher implements Enricher {
   ): Promise<OptionNormalized[]> {
     if (combos.length === 0) return [];
 
-    // 단일 축(값 1개)은 LLM에 맡기지 않고 결정적(룰)으로 처리.
-    // 이유: 멀쩡한 단일 옵션을 LLM이 2칸으로 억지 분해하다 토큰을 중복·누락시키는 환각 방지.
-    //       (원칙: 룰 우선 — 쉬운 80%는 코드로, LLM은 다축 의미론 재배치 같은 어려운 20%만)
+    // 라우팅(데이터 기반 결정): 축 2개 이하는 룰(위치 기반·결정적), 3축 이상만 LLM.
+    //   근거: 실데이터 검증 결과 ≤2축은 위치 기반이면 충분하고, LLM은 상품명 누출·뭉침 오염만 추가했다.
+    //         3축→2칸 압축만 "어려운 20%"라 LLM을 쓰되, grounded·무손실 가드로 오염을 원천 차단한다.
     const results: (OptionNormalized | null)[] = new Array(combos.length).fill(null);
     const llmIdx: number[] = [];
     const llmCombos: OptionNormalizeInput[] = [];
+    const ruleIdx: number[] = [];
+    const ruleCombos: OptionNormalizeInput[] = [];
     combos.forEach((c, i) => {
-      if (c.names.filter(Boolean).length <= 1) {
-        results[i] = null; // 아래에서 룰 baseline으로 일괄 채움
-      } else {
+      if (c.names.filter(Boolean).length >= 3) {
         llmIdx.push(i);
         llmCombos.push(c);
+      } else {
+        ruleIdx.push(i);
+        ruleCombos.push(c);
       }
     });
 
-    // 단일 축: 룰 enricher의 결정적 정규화(이모지·수식어 제거, option1=원문, option2=null)
-    const singleCombos = combos.filter((c) => c.names.filter(Boolean).length <= 1);
-    if (singleCombos.length > 0) {
-      const ruleOut = await this.fallback.normalizeOptions(singleCombos);
-      let k = 0;
-      for (let i = 0; i < combos.length; i++) {
-        if (results[i] === null && combos[i].names.filter(Boolean).length <= 1) {
-          results[i] = ruleOut[k++];
-        }
-      }
+    // ≤2축: 룰 결정적 정규화(이모지·수식어 제거, 위치 기반)
+    if (ruleCombos.length > 0) {
+      const out = await this.fallback.normalizeOptions(ruleCombos);
+      ruleIdx.forEach((origIdx, k) => (results[origIdx] = out[k]));
     }
 
-    // 다축이 없으면 LLM 호출 자체를 생략 (비용·환각 회피)
-    if (llmCombos.length === 0) {
-      return results.map((r) => r ?? { option1: null, option2: null });
+    // 3축+: LLM 의미배치 → grounded·무손실 가드(통과 못하면 위치 기반 폴백). 폴백용 위치값 미리 산출.
+    if (llmCombos.length > 0) {
+      const fallback = await this.fallback.normalizeOptions(llmCombos);
+      const llmOut = await this.llmNormalizeMultiAxis(llmCombos, ctx);
+      llmIdx.forEach((origIdx, k) => {
+        // LLM 실패(내부 폴백, aiPlaced=false)는 가드 생략. LLM 성공분만 grounded 검증.
+        results[origIdx] = llmOut[k].aiPlaced
+          ? guardOptionOutput(llmOut[k], llmCombos[k].names, fallback[k])
+          : { ...fallback[k], aiPlaced: false };
+      });
     }
 
-    // 다축(2개 이상)만 LLM에 보내 의미론 재배치 후 원래 위치에 병합
-    const llmOut = await this.llmNormalizeMultiAxis(llmCombos, ctx);
-    llmIdx.forEach((origIdx, k) => {
-      results[origIdx] = llmOut[k];
-    });
-    return results.map((r) => r ?? { option1: null, option2: null });
+    return results.map((r) => r ?? { option1: null, option2: null, aiPlaced: false });
   }
 
-  /** 다축 옵션 의미론 정규화 (LLM). 단일 축은 호출부에서 이미 결정적 처리됨. */
+  /** 3축+ 옵션 의미론 정규화 (LLM). ≤2축은 호출부에서 이미 룰(결정적) 처리됨. */
   private async llmNormalizeMultiAxis(
     combos: OptionNormalizeInput[],
     ctx: { productName: string | null },
@@ -136,10 +135,11 @@ export class OpenAiEnricher implements Enricher {
           {
             role: 'system',
             content:
-              '옵션 텍스트를 큐닷 제안서용으로 정규화한다. ' +
+              '옵션 텍스트를 큐닷 제안서용 2칸으로 재배치한다. ' +
               'option1=상품 종류/색상/맛, option2=구성/수량/용량. ' +
               '"[필수]","★특가★","선택" 같은 판매자 수식어와 이모지를 제거한다. ' +
-              '입력 순서를 그대로 유지하고, 가격이나 새 정보를 만들지 마라. ' +
+              '⚠️ 입력 옵션 값에 실제로 있는 텍스트만 사용하라. 상품명·축 제목·새 단어를 절대 추가하지 마라(원본 값만 재배치). ' +
+              '입력의 모든 값이 option1·option2 어딘가에 빠짐없이 담겨야 한다. ' +
               '해당 정보가 없으면 문자열 "null"이 아니라 JSON null 값을 사용한다. 빈 문자열도 쓰지 마라.',
           },
           {
@@ -179,14 +179,46 @@ export class OpenAiEnricher implements Enricher {
       if (!Array.isArray(p.results) || p.results.length !== combos.length) {
         return this.fallback.normalizeOptions(combos);
       }
-      // null문자열/빈값 정리는 validate.ts(단일 관문)가 담당. 여기선 타입만 정돈.
+      // null문자열/빈값 정리는 validate.ts(단일 관문)가 담당. 여기선 타입만 정돈. aiPlaced=true로 표시(가드 대상).
       return p.results.map((r: any) => ({
         option1: typeof r.option1 === 'string' ? r.option1 : null,
         option2: typeof r.option2 === 'string' ? r.option2 : null,
+        aiPlaced: true,
       }));
     } catch (e: any) {
       console.log(`  ⚠️ OpenAI 옵션정규화 실패 → 룰 fallback (${e.message})`);
       return this.fallback.normalizeOptions(combos);
     }
   }
+}
+
+/**
+ * LLM 옵션 출력 grounded·무손실 가드 (self-heal과 같은 정직성 원칙).
+ *   ① 무손실: 입력 옵션 값이 모두 출력(option1+option2)에 담겼는지 — 누락 SKU 방지.
+ *   ② 무오염: 입력 값·구분자를 제거한 뒤 의미있는 잔여 텍스트가 없어야 — 상품명 누출·새 단어 차단.
+ * 둘 중 하나라도 실패하면 위치 기반 폴백(fallback)을 쓴다 → 결과는 항상 "깨끗한 LLM" 또는 "깨끗한 위치값". 절대 안 깨짐.
+ */
+function guardOptionOutput(
+  llm: OptionNormalized,
+  names: string[],
+  fallback: OptionNormalized,
+): OptionNormalized {
+  // 긴 값부터 제거(부분문자열 과다제거 방지). 입력 값 = grounded 어휘.
+  const inputs = names
+    .map((n) => cleanOptionText(n))
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+  if (inputs.length === 0) return { ...fallback, aiPlaced: false };
+
+  const combined = `${llm.option1 ?? ''} ${llm.option2 ?? ''}`;
+  // ① 무손실: 모든 입력 값이 출력에 포함
+  const lossless = inputs.every((v) => combined.includes(v));
+  // ② 무오염: 입력 값·구분자·null 제거 후 잔여 문자(한글/영숫자) 없음
+  let residue = combined;
+  for (const v of inputs) residue = residue.split(v).join(' ');
+  residue = residue.replace(/null|undefined/gi, '').replace(/[\s/·,+()\-]/g, '');
+  const noForeign = residue.length === 0;
+
+  if (lossless && noForeign) return { option1: llm.option1, option2: llm.option2, aiPlaced: true };
+  return { ...fallback, aiPlaced: false }; // 손실 또는 오염 → 위치 기반 폴백(결정적)
 }
