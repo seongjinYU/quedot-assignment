@@ -1,0 +1,242 @@
+{
+  "store": "phytonutri",
+  "updatedAt": "2026-06-12T19:33:37.942Z",
+  "products": {
+    "2484535152": {
+      "consumerPrice": 43500,
+      "salePrice": 34800
+    },
+    "2491691755": {
+      "consumerPrice": 49000,
+      "salePrice": 36500
+    },
+    "3476520230": {
+      "consumerPrice": 89000,
+      "salePrice": 72800
+    },
+    "3476527051": {
+      "consumerPrice": 445000,
+      "salePrice": 291200
+    },
+    "3485435654": {
+      "consumerPrice": 111600,
+      "salePrice": 98300
+    },
+    "3592285504": {
+      "consumerPrice": 75000,
+      "salePrice": 59800
+    },
+    "3731697903": {
+      "consumerPrice": 300000,
+      "salePrice": 179400
+    },
+    "3830426081": {
+      "consumerPrice": 54000,
+      "salePrice": 39800
+    },
+    "3906774409": {
+      "consumerPrice": 63000,
+      "salePrice": 47800
+    },
+    "3906887165": {
+      "consumerPrice": 252000,
+      "salePrice": 143400
+    },
+    "3926579073": {
+      "consumerPrice": 112000,
+      "salePrice": 78000
+    },
+    "4079618365": {
+      "consumerPrice": 98000,
+      "salePrice": 78800
+    },
+    "4079653140": {
+      "consumerPrice": 490000,
+      "salePrice": 315200
+    },
+    "9623766251": {
+      "consumerPrice": 46000,
+      "salePrice": 26800
+    },
+    "9969905304": {
+      "consumerPrice": 30800,
+      "salePrice": 27300
+    },
+    "10896548698": {
+      "consumerPrice": 32000,
+      "salePrice": 28800
+    },
+    "10004309766": {
+      "consumerPrice": 490000,
+      "salePrice": 63800
+    },
+    "11369148399": {
+      "consumerPrice": 65000,
+      "salePrice": 54800
+    },
+    "13376524187": {
+      "consumerPrice": 174000,
+      "salePrice": 82800
+    },
+    "12149834308": {
+      "consumerPrice": 44000,
+      "salePrice": 39800
+    },
+    "4828061664": {
+      "consumerPrice": 39800,
+      "salePrice": 34800
+    },
+    "12243541634": {
+      "consumerPrice": 456000,
+      "salePrice": 49800
+    },
+    "10099296399": {
+      "consumerPrice": 32000,
+      "salePrice": 17250
+    },
+    "6910741015": {
+      "consumerPrice": 90000,
+      "salePrice": 69800
+    },
+    "13026595265": {
+      "consumerPrice": 80000,
+      "salePrice": 57000
+    },
+    "11315534086": {
+      "consumerPrice": 80000,
+      "salePrice": 54000
+    },
+    "6850828383": {
+      "consumerPrice": 200000,
+      "salePrice": 110400
+    },
+    "4940641198": {
+      "consumerPrice": 75000,
+      "salePrice": 49800
+    },
+    "13192747870": {
+      "consumerPrice": 20000,
+      "salePrice": 16800
+    },
+    "11378293899": {
+      "consumerPrice": 20000,
+      "salePrice": 18000
+    },
+    "11131463734": {
+      "consumerPrice": 490000,
+      "salePrice": 62300
+    },
+    "4539396036": {
+      "consumerPrice": 110000,
+      "salePrice": 82500
+    },
+    "13591856705": {
+      "consumerPrice": 44500,
+      "salePrice": 39800
+    },
+    "13221438835": {
+      "consumerPrice": 32000,
+      "salePrice": 28800
+    },
+    "13192842149": {
+      "consumerPrice": 80000,
+      "salePrice": 58900
+    },
+    "13040166009": {
+      "consumerPrice": 40000,
+      "salePrice": 36000
+    },
+    "12990179339": {
+      "consumerPrice": 20000,
+      "salePrice": 19000
+    },
+    "9649434945": {
+      "consumerPrice": 48000,
+      "salePrice": 32000
+    },
+    "6849990606": {
+      "consumerPrice": 50000,
+      "salePrice": 36800
+    },
+    "4364548181": {
+      "consumerPrice": 500000,
+      "salePrice": 319200
+    },
+    "13549521293": {
+      "consumerPrice": 32000,
+      "salePrice": 23000
+    },
+    "12417692908": {
+      "consumerPrice": 60800,
+      "salePrice": 54800
+    },
+    "10452058993": {
+      "consumerPrice": 10000,
+      "salePrice": 2500
+    },
+    "10099379734": {
+      "consumerPrice": 32000,
+      "salePrice": 16430
+    },
+    "9657788059": {
+      "consumerPrice": 10000,
+      "salePrice": 10000
+    },
+    "9657774146": {
+      "consumerPrice": 13000,
+      "salePrice": 13000
+    },
+    "9657769389": {
+      "consumerPrice": 12000,
+      "salePrice": 12000
+    },
+    "9649426860": {
+      "consumerPrice": 32000,
+      "salePrice": 23000
+    },
+    "9649392898": {
+      "consumerPrice": 32000,
+      "salePrice": 23000
+    },
+    "9649373335": {
+      "consumerPrice": 32000,
+      "salePrice": 23000
+    },
+    "9649326348": {
+      "consumerPrice": 32000,
+      "salePrice": 23000
+    },
+    "9600912502": {
+      "consumerPrice": 225000,
+      "salePrice": 180000
+    },
+    "8628049848": {
+      "consumerPrice": 45000,
+      "salePrice": 39800
+    },
+    "8627989794": {
+      "consumerPrice": 150000,
+      "salePrice": 109000
+    },
+    "6956756386": {
+      "consumerPrice": 179000,
+      "salePrice": 128000
+    },
+    "6911447986": {
+      "consumerPrice": 360000,
+      "salePrice": 209400
+    },
+    "4979336020": {
+      "consumerPrice": 45000,
+      "salePrice": 45000
+    },
+    "4399390518": {
+      "consumerPrice": 55000,
+      "salePrice": 9900
+    },
+    "4383489108": {
+      "consumerPrice": 100000,
+      "salePrice": 79800
+    }
+  }
+}

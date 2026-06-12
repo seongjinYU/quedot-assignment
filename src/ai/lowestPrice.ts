@@ -144,14 +144,25 @@ export function judge(item: NaverShopItem, t: Target): { ok: boolean; reason: st
   return { ok: true, reason: `brand+토큰${share}+단위+묶음+가격` };
 }
 
-export function buildQuery(name: string, short = false): string {
+/**
+ * 검색 쿼리 생성. 핵심: 브랜드·제품명을 보존해야 동일상품이 검색된다.
+ *   - 대괄호 [브랜드 제품명]는 버리지 않고 내용을 살린다(브랜드·제품 식별자가 여기 있을 때가 많음 —
+ *     예: "[지니어스뉴 투데이디3 세트] 아이 유아 DHA…"에서 대괄호를 버리면 "아이 유아 DHA"만 남아 오매칭).
+ *   - 브랜드명(brand)을 쿼리 맨 앞에 강제 포함(없으면 이름에서 추출 안 됨).
+ */
+export function buildQuery(name: string, short = false, brand?: string | null): string {
   const clean = stripTags(name)
-    .replace(/\[[^\]]*\]/g, ' ') // [태그] 제거
+    .replace(/[[\]]/g, ' ') // 대괄호 기호만 제거(내용은 보존)
     .replace(/[가-힣a-z]+(?:\s*\+\s*[가-힣a-z]+){1,}/gi, ' ') // 색상/구성 나열(핑크+옐로우+퍼플) 제거
     .replace(/\s+/g, ' ')
     .trim();
-  if (!short) return clean.slice(0, 40); // 네이버: 긴 query로 pid==mid 매칭 잘됨
-  return clean.split(' ').slice(0, 3).join(' '); // 에누리: 브랜드+상품+수량 핵심만(긴 query는 0건)
+  // 브랜드명을 앞에 붙임(이미 이름에 포함돼 있으면 중복 안 함)
+  const b = (brand ?? '').trim();
+  const withBrand = b && !clean.includes(b) ? `${b} ${clean}` : clean;
+  if (!short) return withBrand.slice(0, 40); // 네이버: 긴 query로 pid==mid 매칭 잘됨
+  // 에누리: 브랜드+제품명 핵심만(긴 query는 0건). 브랜드가 있으면 브랜드+핵심2단어, 없으면 앞 3단어.
+  const toks = withBrand.split(' ').filter(Boolean);
+  return toks.slice(0, b ? 4 : 3).join(' ');
 }
 
 export interface LowestPriceReport {
@@ -206,7 +217,7 @@ export async function resolveLowestPrices(
     const rep = skus[0];
     const naverMid = rep.meta.naverMid != null ? String(rep.meta.naverMid) : null;
     const target: Target = { naverMid, name: rep.data.name ?? '', brand: rep.data.brand_name, salePrice: rep.data.sales_price };
-    const query = buildQuery(target.name);
+    const query = buildQuery(target.name, false, target.brand);
     const fetchedAt = new Date().toISOString();
     const candidates: Candidate[] = [];
     report.attempted++;
@@ -216,13 +227,13 @@ export async function resolveLowestPrices(
       try {
         // 긴 쿼리로 1차(display 넉넉히 40 — 정확매칭이 상위 10위 밖이어도 회수). pid==mid를 못 찾으면
         // 짧은 쿼리로 한 번 더 검색해 합친다(검색결과가 달라 정확매칭이 잡힐 수 있음). judge는 그대로라 오탐 위험 0.
+        // 긴 쿼리(구체적)는 자기 스토어 listing만 좁게 잡히기 쉽다(mid는 맞지만 타몰 최저가를 놓침).
+        //   → 짧은 쿼리로 항상 보강해 옥션·G마켓 등 동일상품 타몰 후보를 더 모은다. mid는 '동일상품 확정'
+        //     신호로만 쓰고, 최저가는 전체 후보에서 고른다(judge가 오탐 차단하므로 후보를 넓혀도 안전).
         const items = await naverClient.search(query, 40);
-        const hasMid = () => items.some((it) => it.productId === String(naverMid));
-        if (!hasMid()) {
-          const more = await naverClient.search(buildQuery(target.name, true), 40);
-          const seen = new Set(items.map((i) => i.productId));
-          for (const m of more) if (!seen.has(m.productId)) items.push(m);
-        }
+        const more = await naverClient.search(buildQuery(target.name, true, target.brand), 40);
+        const seen = new Set(items.map((i) => i.productId));
+        for (const m of more) if (!seen.has(m.productId)) items.push(m);
         for (const it of items) {
           const j = judge(it, target);
           if (j.ok && it.lprice > 0) {
@@ -238,7 +249,7 @@ export async function resolveLowestPrices(
     // ② 에누리 (매칭키 불필요 — 고도몰 상품도 가능, 쿠팡 포함). 짧은 query 사용(긴 query는 0건)
     if (opts.enuri) {
       try {
-        const eitems = await opts.enuri.search(buildQuery(target.name, true));
+        const eitems = await opts.enuri.search(buildQuery(target.name, true, target.brand));
         for (const e of eitems) {
           if (e.coupon) continue; // ③ 쿠폰가는 조건부(클립·기간한정)라 신뢰도 낮음 → 비쿠폰 표시가만 사용
           const asItem: NaverShopItem = { productId: '', title: e.name, lprice: e.price, mallName: e.mall, brand: '', maker: '', link: '', productType: '' };
