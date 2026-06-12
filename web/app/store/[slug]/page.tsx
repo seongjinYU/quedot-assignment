@@ -21,22 +21,31 @@ export default async function StorePage({
   if (!known) notFound();
 
   const { products, quality } = getStore(slug);
+  const crawledAt = known.crawledAt
+    ? new Date(known.crawledAt).toLocaleString("ko-KR")
+    : "—";
 
   return (
-    <main className="mx-auto w-full max-w-[100rem] flex-1 px-4 py-8">
-      <div className="mb-4">
+    <main className="mx-auto w-full max-w-[100rem] flex-1 px-5 py-8">
+      {/* 마스트헤드 */}
+      <header className="rise mb-6">
         <Link
           href="/"
-          className="text-xs text-slate-400 hover:text-slate-600"
+          className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft transition-colors hover:text-ink"
         >
-          ← 스토어 목록
+          ← Ledger
         </Link>
-        <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900">
-          {quality?.store ?? slug}
-        </h1>
-      </div>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-3 border-b border-ink/80 pb-3">
+          <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink">
+            {quality?.store ?? slug}
+          </h1>
+          <div className="font-mono text-[11px] text-ink-soft">
+            수집 {crawledAt}
+          </div>
+        </div>
+      </header>
 
-      <div className="space-y-5">
+      <div className="space-y-6">
         <QualitySummary quality={quality} />
         <Legend />
         <SkuTable products={products} />

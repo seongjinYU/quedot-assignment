@@ -58,6 +58,13 @@ export interface ProductMeta {
   soldOut?: boolean;
   /** 자가복구(selfHeal)로 복구된 필드 — 검수 UI가 "확인 필요"로 강조 */
   recovered?: { field: string; confidence: number }[];
+  /** validate.ts 행별 검증 이슈 — 백엔드가 meta에 저장하면 "검수 권장" 필터가 활성 */
+  issues?: {
+    field: string;
+    level: "error" | "warn";
+    type: string;
+    message: string;
+  }[];
   basis?: {
     categoryPath: boolean;
     detailText: boolean;
@@ -92,6 +99,7 @@ export interface QualityReport {
     error: number;
     warn: number;
     byField?: Record<string, number>;
+    byType?: Record<string, number>;
   };
   aiUsage?: { enriched: number; ruleFallback: number };
 }
@@ -119,13 +127,12 @@ export const TABLE_FIELDS: { key: ProductField; label: string }[] = [
   { key: 'option2', label: '옵션2' },
   { key: 'consumer_price', label: '정가' },
   { key: 'sales_price', label: '판매가' },
+  { key: 'lowest_price', label: '최저가' },
   { key: 'discount_rate', label: '할인율' },
   { key: 'category_group', label: '카테고리' },
   { key: 'hashtags', label: '해시태그' },
   { key: 'usp', label: 'USP' },
 ];
 
-/** 상세 펼침에서만 보이는 필드 */
-export const DETAIL_FIELDS: { key: ProductField; label: string }[] = [
-  { key: 'lowest_price', label: '최저가(가산점)' },
-];
+/** 상세 펼침에서만 보이는 필드 (현재 없음 — 전부 컬럼으로 노출) */
+export const DETAIL_FIELDS: { key: ProductField; label: string }[] = [];

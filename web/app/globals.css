@@ -1,8 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+@theme {
+  --font-display: "Hahmlet", ui-serif, Georgia, serif;
+  --font-sans: "IBM Plex Sans KR", ui-sans-serif, system-ui, "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-paper: #f2ede2;
+  --color-panel: #faf7ef;
+  --color-ink: #1b1712;
+  --color-ink-soft: #6c6356;
+  --color-rule: #d9d1bf;
 }
 
 html {
@@ -10,8 +19,70 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo",
-    "Malgun Gothic", sans-serif;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  position: relative;
+}
+
+/* 종이 그레인 텍스처 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* 모노 숫자 정렬 */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* 진입 애니메이션 — 절제된 staggered reveal */
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: riseIn 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes inkWipe {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.rule-wipe {
+  transform-origin: left;
+  animation: inkWipe 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .rule-wipe {
+    animation: none;
+  }
 }

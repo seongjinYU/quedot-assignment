@@ -29,5 +29,5 @@ option_recon.json
 coupang-session/
 coupang-state.json
 
-# 탐침/디버그 스크립트 + 외부 페이지 덤프 (제출 제외)
-scripts/
+# 탐침/디버그 스크립트 + 외부 페이지 덤프 (제출 제외) — 루트 한정(web/scripts 는 추적)
+/scripts/
