@@ -27,15 +27,25 @@ mkdirSync(dataDir, { recursive: true });
 
 const all = readdirSync(outputDir).filter((f) => f.endsWith('.json'));
 // 스토어 결과 파일만: 사이드카(.quality / .cache 등) 제외
-const stores = all
+const found = all
   .filter(
     (f) =>
       !f.endsWith('.quality.json') &&
       !f.endsWith('.cache.json') &&
       !f.endsWith('.state.json')
   )
-  .map((f) => f.replace(/\.json$/, ''))
-  .sort();
+  .map((f) => f.replace(/\.json$/, ''));
+
+// 표시 순서 고정: 지정 순서 우선, 나머지는 알파벳
+const ORDER = ['phytonutri', 'kefii', 'happylandmall'];
+const stores = found.sort((a, b) => {
+  const ia = ORDER.indexOf(a);
+  const ib = ORDER.indexOf(b);
+  if (ia !== -1 && ib !== -1) return ia - ib;
+  if (ia !== -1) return -1;
+  if (ib !== -1) return 1;
+  return a.localeCompare(b);
+});
 
 const index = [];
 for (const slug of stores) {

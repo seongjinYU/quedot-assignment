@@ -23,12 +23,6 @@ export default function HomePage() {
           <span>Provenance Ledger</span>
         </div>
 
-        <h1 className="rise mt-5 font-display text-5xl font-extrabold leading-[1.04] tracking-tight text-ink sm:text-6xl" style={{ animationDelay: "60ms" }}>
-          정규화 결과
-          <br />
-          검수 원장
-        </h1>
-
         <p
           className="rise mt-6 max-w-2xl text-[15px] leading-relaxed text-ink-soft"
           style={{ animationDelay: "120ms" }}

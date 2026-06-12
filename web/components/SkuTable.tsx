@@ -472,9 +472,11 @@ function FragmentRow({
                     ? "line-clamp-4 break-keep text-[13px] leading-snug text-ink"
                     : f.key === "hashtags"
                       ? "line-clamp-3 break-keep font-mono text-[12px] leading-snug text-ink-soft"
-                      : numeric
-                        ? "font-mono text-sm tnum text-ink"
-                        : "break-keep text-sm text-ink"
+                      : f.key === "option1" || f.key === "option2"
+                        ? "block break-words text-sm leading-snug text-ink"
+                        : numeric
+                          ? "font-mono text-sm tnum text-ink"
+                          : "break-keep text-sm text-ink"
                 }
               >
                 {fmtValue(f.key, p)}
