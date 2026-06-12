@@ -20,19 +20,22 @@ export async function mapToQuedot(
   raw: RawProduct,
   storeUrl: string,
   enricher: Enricher,
+  opts: { siteCategories?: string[] } = {},
 ): Promise<NormalizedProduct[]> {
-  // AI enrich(category/hashtags/usp)는 상품 단위 1회
+  // AI enrich(category/hashtags/usp)는 상품 단위 1회. 스토어 카테고리를 함께 줘 유아/기타·도메인 판단.
   const ai = await enricher.enrich({
     name: raw.name,
     categoryPath: raw.categoryPath ?? null,
     sellerTags: raw.sellerTags ?? [],
     detailText: raw.detailText ?? null,
+    siteCategories: opts.siteCategories,
   });
+  const hasSite = (opts.siteCategories?.length ?? 0) > 0;
 
   const combos = raw.optionCombos ?? [];
   if (combos.length === 0) {
     // 옵션 없음(단일상품) 또는 주관식 입력형 옵션은 어댑터에서 제외됨 → 1건
-    return [buildRow(raw, storeUrl, enricher.kind, ai, undefined, undefined, 0, 0)];
+    return [buildRow(raw, storeUrl, enricher.kind, ai, undefined, undefined, 0, 0, hasSite)];
   }
 
   // 옵션 텍스트 정규화 (상품당 1배치). 가격/식별은 아래에서 원본 combo 유지.
@@ -46,7 +49,7 @@ export async function mapToQuedot(
     console.log(`  ⚠️ 옵션 조합 ${combos.length}개 (비정상적으로 많음 — 데이터 확인 권장)`);
   }
   return combos.map((combo, i) =>
-    buildRow(raw, storeUrl, enricher.kind, ai, combo, norms[i], i, combos.length),
+    buildRow(raw, storeUrl, enricher.kind, ai, combo, norms[i], i, combos.length, hasSite),
   );
 }
 
@@ -59,6 +62,7 @@ function buildRow(
   norm: OptionNormalized | undefined,
   optionIndex: number,
   optionTotal: number,
+  hasSiteContext = false,
 ): NormalizedProduct {
   const prov: Record<keyof PartnerProductCreateInput, FieldProvenance> = {} as any;
   // AI 필드의 실제 근거 유무 (provenance 정직성 + validate 환각 차단의 기준)
@@ -168,8 +172,12 @@ function buildRow(
   prov.usp = usp ? { method: 'ai', source: uspSrc } : empty('USP 없음(근거 부족)');
 
   const category_group = ai.category_group ?? [];
-  const catSrc = basis.categoryPath ? `카테고리경로+상품명 / ${aiSrc}` : `상품명만 / ${aiSrc}`;
-  prov.category_group = category_group.length ? { method: 'ai', source: catSrc } : empty('카테고리 분류 실패');
+  const catBasis = [basis.categoryPath ? '카테고리경로' : '상품명', hasSiteContext ? '스토어카테고리' : null]
+    .filter(Boolean)
+    .join('+');
+  prov.category_group = category_group.length
+    ? { method: 'ai', source: `${catBasis} / ${aiSrc}` }
+    : empty('카테고리 분류 실패');
 
   const data: PartnerProductCreateInput = {
     brand_name, name, image_url, option1, option2,
@@ -191,6 +199,7 @@ function buildRow(
       optionAxisCount: combo ? combo.names.filter(Boolean).length : undefined,
       // 품절: 상품 단위(raw.soldOut) 또는 이 옵션 조합 단위(combo.soldOut)
       soldOut: !!(raw.soldOut || combo?.soldOut),
+      categoryPath: raw.categoryPath ?? null, // 분류 근거 추적(감사)
       // 자가복구로 채운 필드(검수 UI가 "확인 필요"로 강조). raw 필드명 → 출력 필드명으로 변환.
       recovered: raw.recovered
         ? Object.entries(raw.recovered).map(([k, v]) => ({

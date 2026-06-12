@@ -12,6 +12,7 @@ export class NaverStoreAdapter implements StoreAdapter {
   private channelNo?: string;
   private apiOrigin?: string; // same-origin 호출용 (smartstore vs brand)
   private apiPrefix?: string; // smartstore='i', brand='n'
+  private storeCategories: string[] = []; // 전시 카테고리(nav) 이름 — ensureChannel에서 1회 수집
 
   constructor(private session: BrowserSession) {}
 
@@ -41,6 +42,25 @@ export class NaverStoreAdapter implements StoreAdapter {
     this.channelUid = pre?.channel?.channelUid;
     this.channelNo = String(pre?.channel?.id ?? pre?.channel?.channelNo ?? '');
     if (!this.channelUid) throw new Error('channelUid 추출 실패 (로그인/세션 확인 필요)');
+    // 전시 카테고리(nav 메뉴) 수집 — 스토어 성격 신호. "전체상품"·기획/프로모 카테고리(BEST·인기·신상…)는
+    //   상품 성격이 아니라 제외하고, 이모지·[1+1] 같은 장식은 정리한다.
+    const cleanCat = (s: string) =>
+      s
+        .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}★☆]/gu, '')
+        .replace(/\[[^\]]*\]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    const PROMO = /best|인기|신상|new|추천|기획|이벤트|쿠폰|for\s*you|단독|특가|핫딜|md/i;
+    this.storeCategories = (pre?.categoryMenu?.firstCategories ?? [])
+      .filter((c: any) => c && !c.allProductCategory && c.name)
+      .map((c: any) => cleanCat(String(c.name)))
+      .filter((n: string) => n && !PROMO.test(n));
+  }
+
+  /** 전시 카테고리(nav) 이름 목록 — 스토어 성격 파악용. ensureChannel에서 수집한 값 반환. */
+  async listCategories(storeUrl: string): Promise<string[]> {
+    await this.ensureChannel(storeUrl);
+    return this.storeCategories;
   }
 
   /**

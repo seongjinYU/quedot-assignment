@@ -214,8 +214,15 @@ export async function resolveLowestPrices(
     // ① 네이버 (naverMid 정확매칭 활용 — 키 있고 매칭키 있을 때)
     if (naverClient && naverMid) {
       try {
-        let items = await naverClient.search(query, 10);
-        if (items.length === 0) items = await naverClient.search(buildQuery(target.name, true), 10);
+        // 긴 쿼리로 1차(display 넉넉히 40 — 정확매칭이 상위 10위 밖이어도 회수). pid==mid를 못 찾으면
+        // 짧은 쿼리로 한 번 더 검색해 합친다(검색결과가 달라 정확매칭이 잡힐 수 있음). judge는 그대로라 오탐 위험 0.
+        const items = await naverClient.search(query, 40);
+        const hasMid = () => items.some((it) => it.productId === String(naverMid));
+        if (!hasMid()) {
+          const more = await naverClient.search(buildQuery(target.name, true), 40);
+          const seen = new Set(items.map((i) => i.productId));
+          for (const m of more) if (!seen.has(m.productId)) items.push(m);
+        }
         for (const it of items) {
           const j = judge(it, target);
           if (j.ok && it.lprice > 0) {

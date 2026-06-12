@@ -38,13 +38,14 @@ export class OpenAiEnricher implements Enricher {
           {
             role: 'user',
             content:
-              `상품 정보:\n${JSON.stringify(input, null, 1)}\n\n` +
-              `- category_group: 7종 중 가장 적합한 1개만 선택. 명확히 두 영역에 걸칠 때만 최대 2개. 억지로 여러 개 고르지 마라.\n` +
-              `  (의류·잡화·생활용품은 "유아 생활" 또는 "기타 리빙", 영양제·건강식품은 "유아 건강")\n` +
-              `- hashtags: 상품 핵심 키워드 3~8개(노이즈/중복 제거). detailText(상세설명)가 있으면 거기서 소재·특징도 반영.\n` +
-              `- usp: 상품명·태그·카테고리·detailText(상세설명)에서 확인되는 사실만으로 한 문장 소구점. ` +
-              `detailText에 소재·기능·사이즈 등 구체 정보가 있으면 우선 활용하라. ` +
-              `과장·미입증 효능(예: 질병 예방·치료)·없는 인증을 지어내지 마라. 근거가 전혀 없으면 빈 문자열.`,
+              `큐닷 7종 분류(괄호=의미):\n` +
+              `· 유아 식품 / 유아 건강(영양제·비타민·유산균) / 유아 놀이 교육(완구·장난감·놀이) / 유아 생활(의류·신발·잡화·목욕·세정·위생 등 일상용품)\n` +
+              `· 기타 식품 / 기타 여행 / 기타 리빙   (유아=아기·어린이 대상, 기타=성인·일반 대상)\n\n` +
+              `이 스토어가 취급하는 카테고리:\n${(input.siteCategories ?? []).join(' | ') || '(미상)'}\n\n` +
+              `상품 정보:\n${JSON.stringify({ name: input.name, categoryPath: input.categoryPath, sellerTags: input.sellerTags, detailText: input.detailText }, null, 1)}\n\n` +
+              `위 스토어 카테고리로 이 스토어 성격(유아 전용/성인·일반/혼합)을 파악하고, 상품을 7종 중 가장 맞는 1개로 분류하라.\n` +
+              `- hashtags: 핵심 키워드 3~8개(detailText 있으면 소재·특징 반영).\n` +
+              `- usp: 확인되는 사실만으로 한 문장(과장·없는 효능·인증 금지, 근거 없으면 빈 문자열).`,
           },
         ],
         response_format: {

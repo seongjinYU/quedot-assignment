@@ -166,6 +166,11 @@ export class GodomallAdapter implements StoreAdapter {
     return [...this.cardCache.keys()];
   }
 
+  /** 전시 카테고리명 목록 — listProductNos에서 수집한 cateNames(cateCd→명) 기반. 전체보기 등 제네릭 제외. */
+  async listCategories(_storeUrl: string): Promise<string[]> {
+    return [...new Set(this.cateNames.values())].filter((n) => n && !/^전체/.test(n));
+  }
+
   /** 카테고리 네비 앵커(cateCd→텍스트)에서 의미있는 한글 카테고리명만 매핑 */
   private collectCateNames($: cheerio.CheerioAPI) {
     $('a[href*="cateCd="]').each((_, a) => {

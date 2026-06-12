@@ -55,6 +55,9 @@ export interface StoreAdapter {
   matches(url: string): boolean;
   /** 스토어의 전 상품 번호 순회 수집 */
   listProductNos(storeUrl: string, opts?: ListOptions): Promise<string[]>;
+  /** (선택) 스토어의 전시 카테고리(nav 메뉴) 이름 목록 — "이 스토어가 뭘 취급하는지"를 AI 분류에 컨텍스트로 제공.
+   *  네이버=categoryMenu.firstCategories, 고도몰=cateNames. 표준 카테고리보다 사이트 성격을 잘 드러냄. */
+  listCategories?(storeUrl: string): Promise<string[]>;
   /** 단일 상품 결정적 추출 */
   fetchProduct(storeUrl: string, productNo: string): Promise<RawProduct>;
   /** (선택) 가격 배치 조회 — 여러 상품을 한 번에 (개별 호출 회피) */

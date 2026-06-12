@@ -59,6 +59,8 @@ export interface NormalizedProduct {
     optionAxisCount?: number; // 이 SKU의 옵션 축 수 (3축 추적 — 큐닷 2칸 제약 사례)
     note?: string; // 옵션 상한 초과 등 비고
     soldOut?: boolean;
+    /** 스토어 카테고리 경로(분류 근거 감사용) — 어떤 경로로 7enum이 정해졌는지 추적 */
+    categoryPath?: string | null;
     /** 자가복구(selfHeal)로 결정적 추출 실패를 LLM이 복구한 필드 — 검수 UI가 "확인 필요"로 강조 */
     recovered?: { field: string; confidence: number }[];
     /** AI 필드의 실제 근거 유무 (validate가 환각 차단 판단에 사용) */

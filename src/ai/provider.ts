@@ -6,6 +6,9 @@ export interface EnrichInput {
   categoryPath: string | null; // "식품>건강식품>영양제>오메가3"
   sellerTags: string[];
   detailText: string | null;
+  /** 이 스토어가 취급하는 카테고리 텍스트(전 상품에서 모은 distinct 경로). LLM이 "이 사이트가 뭘 파는 곳인지"
+   *  파악해 유아/기타·도메인을 판단하는 근거. 키워드 규칙 대신 사이트 실제 카테고리로 분기. */
+  siteCategories?: string[];
 }
 
 export interface EnrichResult {

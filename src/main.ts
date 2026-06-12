@@ -27,7 +27,7 @@ import {
   type CrawlCache,
   type IncrementalPlan,
 } from './normalize/incremental.js';
-import type { StoreAdapter } from './adapters/types.js';
+import type { StoreAdapter, RawProduct } from './adapters/types.js';
 import type { NormalizedProduct } from './normalize/schema.js';
 import type { Enricher } from './ai/provider.js';
 
@@ -120,8 +120,8 @@ async function main() {
       }
     }
 
-    // 1-pass: 전 상품 수집 (묶음 보정은 전 상품이 모인 뒤 2-pass로)
-    const rawRows: NormalizedProduct[] = [];
+    // 1-pass: 전 상품 수집(fetch + 가격병합 + OCR + 자가복구). 매핑은 사이트 성격 파악 후로 미룬다.
+    const raws: RawProduct[] = [];
     const failures: { productNo: string; reason: string }[] = [];
     for (const id of freshIds) {
       try {
@@ -144,7 +144,6 @@ async function main() {
           }
         }
         // 자가복구: 결정적 추출이 핵심 필드(name 등)를 비웠으면 원본을 LLM에 넘겨 복구.
-        //   평소엔 추출 성공이라 동작 안 함. SELFHEAL_DEMO 지정 시 실패를 강제해 시연/검증.
         if (selfHealer) {
           const hr = await selfHealer.heal(raw);
           if (hr.injected.length) console.log(`  🔧 자가복구[데모]: 결정적값 제거 [${hr.injected.join(', ')}] (${id})`);
@@ -154,17 +153,42 @@ async function main() {
             );
           for (const f of hr.failed) console.log(`  🔧 자가복구 실패: ${f.field} — ${f.reason}`);
         }
-        const nps = await mapToQuedot(raw, storeUrl, enricher);
-        console.log(`\n──────── 상품 ${id} (옵션 ${nps.length}건) ────────`);
-        for (const np of nps) {
-          rawRows.push(np);
-          const opt = [np.data.option1, np.data.option2].filter(Boolean).join(' / ') || '(옵션없음)';
-          console.log(`  • ${opt} | 정가 ${np.data.consumer_price} → 판매 ${np.data.sales_price} (${np.data.discount_rate}%)`);
-        }
+        raws.push(raw);
       } catch (e: any) {
         // 에러 격리: 한 상품 실패해도 전체 중단 없이 다음으로 (실패 목록은 품질 리포트에 기록)
         failures.push({ productNo: String(id), reason: e?.message ?? String(e) });
         console.error(`  ✗ ${id} 실패: ${e.message}`);
+      }
+    }
+
+    // 1.5-pass: 스토어 카테고리 수집 — "이 스토어가 취급하는 것"을 AI 분류 컨텍스트로.
+    //   어댑터의 전시 카테고리(nav: 네이버 그로우랩/혈행, 고도몰 신생아의류 등)를 우선 — 사이트 성격을 잘 드러냄.
+    //   없으면 상품들의 distinct 표준 카테고리로 폴백. (하드코딩 키워드 없이 사이트 실제 카테고리로 분기)
+    const navCats = adapter.listCategories ? await adapter.listCategories(storeUrl) : [];
+    const siteCategories = navCats.length
+      ? navCats
+      : [...new Set(raws.map((r) => r.categoryPath ?? '').filter(Boolean))];
+    if (siteCategories.length)
+      console.log(
+        `\n🏷️ 스토어 카테고리(${navCats.length ? 'nav' : '표준'} ${siteCategories.length}): ${siteCategories.slice(0, 24).join(' | ')}`,
+      );
+
+    // 2-pass: 정규화(매핑) — 스토어 카테고리를 함께 줘 유아/기타·도메인 분류. (묶음 보정은 다음 pass)
+    const rawRows: NormalizedProduct[] = [];
+    for (const raw of raws) {
+      try {
+        const nps = await mapToQuedot(raw, storeUrl, enricher, { siteCategories });
+        console.log(`\n──────── 상품 ${raw.productNo} (옵션 ${nps.length}건) ────────`);
+        for (const np of nps) {
+          rawRows.push(np);
+          const opt = [np.data.option1, np.data.option2].filter(Boolean).join(' / ') || '(옵션없음)';
+          console.log(
+            `  • ${opt} | 정가 ${np.data.consumer_price} → 판매 ${np.data.sales_price} (${np.data.discount_rate}%) | ${(np.data.category_group ?? []).join(',')}`,
+          );
+        }
+      } catch (e: any) {
+        failures.push({ productNo: raw.productNo, reason: e?.message ?? String(e) });
+        console.error(`  ✗ ${raw.productNo} 매핑 실패: ${e.message}`);
       }
     }
 
