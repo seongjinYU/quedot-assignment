@@ -184,6 +184,7 @@ interface Candidate {
   reason: string;
   name: string; // 후보 상품명 — LLM 동일상품 판정용
   strong: boolean; // true=pid==mid 정확매칭(LLM 불필요) / false=휴리스틱(LLM 검수 대상)
+  isSelf: boolean; // 우리가 크롤 중인 자사 네이버 스토어 listing(=sales_price와 동일) → lowest_price 후보에서 제외
 }
 
 /**
@@ -255,9 +256,13 @@ export async function resolveLowestPrices(
         for (const it of items) {
           const j = judge(it, target);
           if (j.ok && it.lprice > 0) {
+            const midHit = !!(naverMid && it.productId === String(naverMid));
+            // 자사 listing: syncNvMid가 가리키는 카탈로그(=자사) OR 우리가 크롤 중인 네이버 스토어 링크.
+            //   자사 가격은 이미 sales_price에 있으므로 lowest_price(=타몰 최저) 후보에서 제외(방안 A).
+            const isSelf = midHit || /smartstore\.naver\.com|brand\.naver\.com/.test(it.link);
             // 확정(LLM 불필요): pid==mid 정확매칭 OR 모델코드 일치
-            const strong = !!(naverMid && it.productId === String(naverMid)) || shareModelCode(target.name, it.title);
-            candidates.push({ price: it.lprice, source: '네이버쇼핑', mall: it.mallName, reason: `pid:${it.productId}·${j.reason}`, name: it.title, strong });
+            const strong = midHit || shareModelCode(target.name, it.title);
+            candidates.push({ price: it.lprice, source: '네이버쇼핑', mall: it.mallName, reason: `pid:${it.productId}·${j.reason}`, name: it.title, strong, isSelf });
           }
         }
       } catch (e) { dbg(e); /* 상품 단위 격리 */ }
@@ -273,15 +278,21 @@ export async function resolveLowestPrices(
           const asItem: NaverShopItem = { productId: '', title: e.name, lprice: e.price, mallName: e.mall, brand: '', maker: '', link: '', productType: '' };
           const j = judge(asItem, target);
           // 에누리는 mid 없음 → 모델코드 일치 시 strong(확정, LLM 생략), 아니면 weak(LLM 검수)
-          if (j.ok && e.price > 0) candidates.push({ price: e.price, source: '에누리', mall: e.mall || '오픈마켓', reason: j.reason, name: e.name, strong: shareModelCode(target.name, e.name) });
+          // 에누리는 타몰 가격비교(쿠팡·11번가 등) → 자사 아님(isSelf=false)
+          if (j.ok && e.price > 0) candidates.push({ price: e.price, source: '에누리', mall: e.mall || '오픈마켓', reason: j.reason, name: e.name, strong: shareModelCode(target.name, e.name), isSelf: false });
         }
       } catch (e) { dbg(e); /* 상품 단위 격리 */ }
     }
 
-    // 동일상품 LLM 검수 — 결정적 사전필터(②③④⑤)를 통과한 '약한'(비-mid) 후보만 의미 판정.
-    //   mid 정확매칭(strong)은 확정이라 LLM 생략. 확신 통과 후보가 없으면 null(오탐 방지).
-    let finalCands = candidates;
-    const weak = candidates.filter((c) => !c.strong);
+    // 방안 A: 자사 listing(우리가 크롤 중인 네이버 스토어)은 lowest_price 후보에서 제외.
+    //   자사 가격은 이미 sales_price에 있어, 자사를 최저가로 채우면 sales_price 복사라 의미가 없다.
+    //   lowest_price = "우리 외 다른 곳(타몰)의 최저가"로 정의 → 타몰(non-self) 후보만 본다.
+    const market = candidates.filter((c) => !c.isSelf);
+
+    // 동일상품 LLM 검수 — 결정적 사전필터(②③④⑤)를 통과한 '약한'(비-모델코드) 타몰 후보만 의미 판정.
+    //   모델코드 일치(strong)는 확정이라 LLM 생략. 확신 통과 후보가 없으면 null(오탐 방지).
+    let finalCands = market;
+    const weak = market.filter((c) => !c.strong);
     if (weak.length > 0) {
       if (opts.matchJudge) {
         let okIdx: number[] = [];
@@ -292,15 +303,19 @@ export async function resolveLowestPrices(
           );
         } catch (e) { dbg(e); /* LLM 실패 → 약한 후보 전부 제외(보수적) */ }
         const ok = new Set(okIdx);
-        finalCands = [...candidates.filter((c) => c.strong), ...weak.filter((_, i) => ok.has(i))];
+        finalCands = [...market.filter((c) => c.strong), ...weak.filter((_, i) => ok.has(i))];
       } else {
-        // LLM 미주입 → 약한 후보는 검수 불가라 보수적으로 제외(오탐 방지). mid 확정만 사용.
-        finalCands = candidates.filter((c) => c.strong);
+        // LLM 미주입 → 약한 후보는 검수 불가라 보수적으로 제외(오탐 방지). 모델코드 확정만 사용.
+        finalCands = market.filter((c) => c.strong);
       }
     }
 
     if (finalCands.length === 0) {
-      applyEmpty(skus, naverMid ? '동일상품 미확정(mid 불일치·LLM 검수 통과 후보 없음·오탐 방지)' : '동일상품 미확정(LLM 검수 통과 후보 없음·오탐 방지)');
+      // 타몰에 동일상품이 없음 → 자사 후보가 있었는지로 사유를 구분(자사 독점 vs 진짜 미확정)
+      const hadSelf = candidates.some((c) => c.isSelf);
+      applyEmpty(skus, hadSelf
+        ? '타몰 동일상품 없음(자사몰 독점 추정 — 비교 대상 없음)'
+        : naverMid ? '동일상품 미확정(타몰 후보 없음·오탐 방지)' : '동일상품 미확정(타몰 후보 없음·오탐 방지)');
       part.nullCount = skus.length;
       return part;
     }
@@ -309,8 +324,9 @@ export async function resolveLowestPrices(
     //    구분 못 한다(네이버 mid는 base 1가격만 줌). 옵션마다 판매가가 다른 상품(예: 택1 세트의
     //    에피베리어 98,300 vs 슬립밸런스 119,300)에 시장최저를 일괄 적용하면 "판매가 < 최저가" 모순.
     //    → SKU별로 적용: 그 SKU 판매가가 시장최저보다 싸면 자기 판매가(판매처 최저), 같거나 비싸면 시장최저.
+    // marketBest = 타몰(자사 제외) 후보 중 최저. (자사는 위에서 이미 걸러져 finalCands에 없음)
     const marketBest = finalCands.reduce((a, b) => (b.price < a.price ? b : a));
-    const llmTag = marketBest.reason.includes('pid==mid') ? '' : marketBest.strong ? '·모델코드확정' : '·LLM확인';
+    const llmTag = marketBest.strong ? '·모델코드확정' : '·LLM확인';
     for (const s of skus) {
       const sp = s.data.sales_price;
       if (sp != null && sp > 0 && sp < marketBest.price) {
