@@ -12,6 +12,7 @@ export type IssueType =
   | 'option_cleanup' // 옵션 텍스트 정리(null/빈값)
   | 'price_invalid' // 비정상 가격(음수/NaN) 무효화
   | 'price_inverted' // 판매가 > 정가
+  | 'lowest_above_sale' // 최저가 > 판매가 (옵션별 가격 불일치 → 무효화)
   | 'discount_range' // 할인율 범위 밖 무효화
   | 'discount_uncomputable' // 정가/판매가 미확보로 할인율 계산 불가
   | 'hashtag_cleanup' // 비정상/중복 태그 정리
@@ -88,6 +89,13 @@ export function validate(np: NormalizedProduct): ValidationIssue[] {
   }
   if (d.consumer_price != null && d.sales_price != null && d.sales_price > d.consumer_price) {
     add('sales_price', 'warn', 'price_inverted', `판매가(${d.sales_price}) > 정가(${d.consumer_price})`);
+  }
+  // 최저가 > 판매가 모순 차단(안전망): lowest_price는 상품단위 1회 조회라 옵션별 가격을 못 구분.
+  //   다른 옵션 가격이 이 SKU에 새면 "시장 최저가가 우리 판매가보다 비싼" 모순 → 무효화(공란).
+  if (d.lowest_price != null && d.sales_price != null && d.lowest_price > d.sales_price) {
+    add('lowest_price', 'warn', 'lowest_above_sale', `최저가(${d.lowest_price}) > 판매가(${d.sales_price}) → 무효화(옵션별 가격 불일치)`);
+    prov.lowest_price = { method: 'empty', reason: `최저가(${d.lowest_price}) > 판매가(${d.sales_price}) 모순(옵션별 가격 차이) → 공란` };
+    d.lowest_price = null;
   }
   // 할인율 범위 가드 (무효화 메시지는 무효화 전 값으로)
   if (d.discount_rate != null && (d.discount_rate < 0 || d.discount_rate > 100)) {

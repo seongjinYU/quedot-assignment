@@ -287,30 +287,35 @@ export async function resolveLowestPrices(
       return;
     }
 
-    // ④ 시장 최저(검수 통과) 후보 vs 판매가 — 실제로 더 낮은 값(=사실)을 채운다.
+    // ④ 시장 최저(검수 통과) 후보. 단 lowest_price는 상품(productNo) 단위 1회 조회라 옵션별 가격을
+    //    구분 못 한다(네이버 mid는 base 1가격만 줌). 옵션마다 판매가가 다른 상품(예: 택1 세트의
+    //    에피베리어 98,300 vs 슬립밸런스 119,300)에 시장최저를 일괄 적용하면 "판매가 < 최저가" 모순.
+    //    → SKU별로 적용: 그 SKU 판매가가 시장최저보다 싸면 자기 판매가(판매처 최저), 같거나 비싸면 시장최저.
     const marketBest = finalCands.reduce((a, b) => (b.price < a.price ? b : a));
-    // 채움 경로 정직 표기: mid 정확매칭 / 모델코드 확정 / LLM 검수
     const llmTag = marketBest.reason.includes('pid==mid') ? '' : marketBest.strong ? '·모델코드확정' : '·LLM확인';
-    const sp = target.salePrice;
-    if (sp != null && sp > 0 && sp < marketBest.price) {
-      // 판매처(브랜드스토어)가 시장 최저 — 더 낮은 판매가가 실제 최저가. 타몰 최저도 함께 기록(투명).
-      apply(skus, sp, {
-        method: 'crawled',
-        source: `판매처(브랜드스토어) 최저 · 타몰 최저 ${marketBest.price.toLocaleString()}원(${marketBest.source}·${marketBest.mall}${llmTag})`,
-        fetchedAt,
-      });
-      report.resolved += skus.length;
-      report.bySource.store++;
-    } else {
-      apply(skus, marketBest.price, {
-        method: 'crawled',
-        source: `${marketBest.source} · ${marketBest.mall} · ${marketBest.reason}${llmTag}`,
-        fetchedAt,
-      });
-      report.resolved += skus.length;
-      if (marketBest.source === '네이버쇼핑') report.bySource.naver++;
-      else report.bySource.enuri++;
+    for (const s of skus) {
+      const sp = s.data.sales_price;
+      if (sp != null && sp > 0 && sp < marketBest.price) {
+        // 이 옵션의 판매가가 시장 최저보다 쌈 → 판매처가 최저. 타몰 최저도 병기(투명).
+        s.data.lowest_price = sp;
+        s.provenance.lowest_price = {
+          method: 'crawled',
+          source: `판매처(브랜드스토어) 최저 · 타몰 최저 ${marketBest.price.toLocaleString()}원(${marketBest.source}·${marketBest.mall}${llmTag})`,
+          fetchedAt,
+        };
+        report.bySource.store++;
+      } else {
+        s.data.lowest_price = marketBest.price;
+        s.provenance.lowest_price = {
+          method: 'crawled',
+          source: `${marketBest.source} · ${marketBest.mall} · ${marketBest.reason}${llmTag}`,
+          fetchedAt,
+        };
+        if (marketBest.source === '네이버쇼핑') report.bySource.naver++;
+        else report.bySource.enuri++;
+      }
     }
+    report.resolved += skus.length;
   });
   return report;
 }
