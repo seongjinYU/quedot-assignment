@@ -16,6 +16,9 @@ function round1(n: number): number {
 const empty = (reason: string): FieldProvenance => ({ method: 'empty', reason });
 const det = (): FieldProvenance => ({ method: 'deterministic' });
 
+// 자가복구 raw 필드명 → 출력 필드명 매핑 (meta.recovered 변환용)
+const RECOVERED_FIELD_MAP: Record<string, string> = { name: 'name', consumerPrice: 'consumer_price' };
+
 export async function mapToQuedot(
   raw: RawProduct,
   storeUrl: string,
@@ -203,7 +206,7 @@ function buildRow(
       // 자가복구로 채운 필드(검수 UI가 "확인 필요"로 강조). raw 필드명 → 출력 필드명으로 변환.
       recovered: raw.recovered
         ? Object.entries(raw.recovered).map(([k, v]) => ({
-            field: ({ name: 'name', consumerPrice: 'consumer_price' } as Record<string, string>)[k] ?? k,
+            field: RECOVERED_FIELD_MAP[k] ?? k,
             confidence: v.confidence,
           }))
         : undefined,

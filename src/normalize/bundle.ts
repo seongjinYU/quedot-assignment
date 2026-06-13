@@ -10,11 +10,12 @@
 // 핵심 안전장치: 이름이 비슷해도 "buyN = 묶음총액 / 낱개판매가" 가 정수가 아니면 매칭을 버린다.
 //   (예: 5+2 → 115,010 / 23,000 = 5.0 ✅ / 3+1 → 69,000 / 23,000 = 3.0 ✅)
 import type { NormalizedProduct } from './schema.js';
+import { BUNDLE, STOPWORDS } from '../config.js';
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
 // 가족 토큰에서 제거할 불용어 (변종/마케팅/소비기한 등 식별에 무의미)
-const STOP = new Set(['소비기한', 'flavor', 'set', 'the', 'for', '증정', '사은품', 'event']);
+const STOP = STOPWORDS.familyToken;
 
 /** 상품명에서 묶음/변종 노이즈를 제거하고 "상품 가족" 토큰만 남긴다. */
 export function familyTokens(name: string | null): Set<string> {
@@ -63,7 +64,7 @@ function isBundle(rows: NormalizedProduct[]): boolean {
   const mismatch = rows.some((r) => {
     const c = r.data.consumer_price;
     const s = r.data.sales_price;
-    return c != null && s != null && c > 0 && s / c >= 1.8; // 판매가 개당의 ~2배+ → 단위 섞임
+    return c != null && s != null && c > 0 && s / c >= BUNDLE.unitMismatchRatio; // 판매가 개당의 ~2배+ → 단위 섞임
   });
   return nameSig && mismatch;
 }

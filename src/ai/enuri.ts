@@ -3,6 +3,7 @@
 // 가격이 JS 렌더라 Playwright 필요(에누리는 차단 약해 stealth 불필요).
 // 성능: page 풀(기본 4) + 세마포어로 동시 검색 — 109개도 수 분 내(순차 대비 ~4배 단축).
 import { chromium, type Browser, type Page } from 'playwright';
+import { SEARCH, TIMING } from '../config.js';
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
@@ -19,7 +20,7 @@ export class EnuriClient {
   private free: Page[] = [];
   private waiters: ((p: Page) => void)[] = [];
 
-  constructor(private poolSize = 4) {}
+  constructor(private poolSize = SEARCH.enuriPoolSize) {}
 
   async init(): Promise<void> {
     if (this.browser) return;
@@ -54,19 +55,20 @@ export class EnuriClient {
     const p = await this.acquire();
     try {
       await p.goto('https://www.enuri.com/search.jsp?keyword=' + encodeURIComponent(query), { waitUntil: 'domcontentloaded', timeout: 40000 });
-      await p.waitForTimeout(2500);
+      // 결과 카드가 뜨면 바로 진행(조건부 대기 — 네트워크 빠르면 단축). 없으면 고정 대기로 폴백(0건 케이스).
+      await p.waitForSelector('li.prodItem', { timeout: TIMING.enuriPageSettle }).catch(() => {});
       // 최저가순 정렬(베스트에포트) — 클릭 실패해도 아래 evaluate에서 JS로 오름차순 보정하므로 안전
       try {
         await p.getByText('최저가순', { exact: false }).first().click({ timeout: 4000 });
-        await p.waitForTimeout(1800);
+        await p.waitForTimeout(TIMING.enuriSortSettle);
       } catch { /* 정렬 실패 → JS 정렬로 보정 */ }
       await p.mouse.wheel(0, 1000);
-      await p.waitForTimeout(1000);
+      await p.waitForTimeout(TIMING.enuriScrollSettle);
 
-      const items: EnuriItem[] = await p.evaluate(() => {
+      const items: EnuriItem[] = await p.evaluate((maxCards) => {
         const out: { name: string; price: number; mall: string; coupon: boolean }[] = [];
         const cards = document.querySelectorAll('li.prodItem');
-        for (let i = 0; i < cards.length && out.length < 12; i++) {
+        for (let i = 0; i < cards.length && out.length < maxCards; i++) {
           const card = cards[i];
           const name = (card.querySelector('h3.item__model')?.textContent || '').replace(/\s+/g, ' ').trim();
           const priceTx = card.querySelector('.col--price em')?.textContent || '';
@@ -79,7 +81,7 @@ export class EnuriClient {
         }
         out.sort((a, b) => a.price - b.price); // 정렬 클릭 실패 대비 — 항상 오름차순 보장
         return out;
-      });
+      }, SEARCH.enuriMaxCards);
 
       return items;
     } finally {

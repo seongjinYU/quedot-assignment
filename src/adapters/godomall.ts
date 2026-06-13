@@ -8,6 +8,7 @@
 // ⚠️ robots.txt가 AI봇 차단 → 일반 UA + rate limit 준수 (회고에 명시)
 import * as cheerio from 'cheerio';
 import type { StoreAdapter, RawProduct, OptionCombo, ListOptions } from './types.js';
+import { STOPWORDS, TIMING } from '../config.js';
 
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
@@ -25,7 +26,7 @@ interface CardData {
 }
 
 // 카테고리 근거로 부적합한 일반/구조 라벨 (브랜드 SHOP 진입점 등)
-const GENERIC_CATE = new Set(['SHOP', 'ALL', 'BEST', 'NEW', '신상품', '베스트', '전체']);
+const GENERIC_CATE = STOPWORDS.genericCate;
 
 function isMeaningfulCateName(name: string): boolean {
   const t = name.replace(/\s+/g, ' ').trim();
@@ -37,7 +38,7 @@ function isMeaningfulCateName(name: string): boolean {
 export class GodomallAdapter implements StoreAdapter {
   readonly name = 'godomall';
   readonly needsBrowser = false; // 순수 HTTP — 브라우저 불필요
-  private cookie = '';
+  private cookies = new Map<string, string>(); // 쿠키 키→값 (재설정 시 갱신 — 단순 누적 시 중복으로 헤더 비대)
   private cardCache = new Map<string, CardData>();
   private cateNames = new Map<string, string>(); // cateCd → 의미있는 카테고리명
   private verified = false; // 고도몰 구조 검증 여부 (런타임 1회)
@@ -45,7 +46,7 @@ export class GodomallAdapter implements StoreAdapter {
   private fetchDetail: boolean; // 상세페이지(goods_view) 1회 fetch 여부 — 설명이미지(OCR)+품절 감지용. 기본 off → 추가 요청 0
 
   constructor(opts: { rateLimitMs?: number; fetchDetail?: boolean } = {}) {
-    this.rateLimitMs = opts.rateLimitMs ?? 300; // 고도몰은 차단 약함 → 짧은 딜레이
+    this.rateLimitMs = opts.rateLimitMs ?? TIMING.godomallRateLimit; // 고도몰은 차단 약함 → 짧은 딜레이
     this.fetchDetail = opts.fetchDetail ?? false;
   }
 
@@ -81,12 +82,18 @@ export class GodomallAdapter implements StoreAdapter {
     const sc = (res.headers as any).getSetCookie?.() ?? [];
     for (const c of sc) {
       const kv = c.split(';')[0];
-      if (kv) this.cookie += (this.cookie ? '; ' : '') + kv;
+      const eq = kv.indexOf('=');
+      if (eq > 0) this.cookies.set(kv.slice(0, eq).trim(), kv.slice(eq + 1)); // 같은 키는 갱신(중복 방지)
     }
   }
 
+  /** 현재 쿠키 jar를 헤더 문자열로 직렬화 */
+  private cookieHeader(): string {
+    return [...this.cookies].map(([k, v]) => `${k}=${v}`).join('; ');
+  }
+
   private async httpGet(url: string): Promise<string> {
-    const res = await fetch(url, { headers: { 'User-Agent': UA, cookie: this.cookie } });
+    const res = await fetch(url, { headers: { 'User-Agent': UA, cookie: this.cookieHeader() } });
     this.saveCookie(res);
     return res.text();
   }
@@ -99,7 +106,7 @@ export class GodomallAdapter implements StoreAdapter {
         'X-Requested-With': 'XMLHttpRequest',
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Referer: referer,
-        cookie: this.cookie,
+        cookie: this.cookieHeader(),
       },
       body,
     });

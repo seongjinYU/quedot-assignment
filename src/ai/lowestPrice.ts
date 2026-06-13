@@ -7,6 +7,7 @@
 import type { NormalizedProduct } from '../normalize/schema.js';
 import type { EnuriClient } from './enuri.js';
 import type { MatchJudge } from './productMatch.js';
+import { PRICE_GUARD, SEARCH, STOPWORDS } from '../config.js';
 
 export interface NaverShopItem {
   productId: string;
@@ -49,12 +50,10 @@ export class NaverShopClient {
   }
 }
 
-const STOP = new Set(['세트', '정품', '공식', '본사', '무료배송', '사은품', '증정', 'set']);
-
 function tokens(name: string): Set<string> {
   const s = stripTags(name).replace(/\[[^\]]*\]|\([^)]*\)/g, ' ').replace(/[+/·,]/g, ' ');
   return new Set(
-    s.split(/\s+/).map((t) => t.trim().toLowerCase()).filter((t) => t.length >= 2 && !/^\d+$/.test(t) && !STOP.has(t)),
+    s.split(/\s+/).map((t) => t.trim().toLowerCase()).filter((t) => t.length >= 2 && !/^\d+$/.test(t) && !STOPWORDS.matchToken.has(t)),
   );
 }
 
@@ -120,7 +119,7 @@ export function judge(item: NaverShopItem, t: Target): { ok: boolean; reason: st
   const sMin = t.salePrice;
   const sMax = t.salePriceMax ?? t.salePrice;
   if (sMin && sMin > 0 && sMax && sMax > 0) {
-    if (item.lprice < sMin * 0.3 || item.lprice > sMax * 3) {
+    if (item.lprice < sMin * PRICE_GUARD.ratioMin || item.lprice > sMax * PRICE_GUARD.ratioMax) {
       const ratio = round1(item.lprice / sMin);
       return { ok: false, reason: `가격 이상(${ratio}배)${midMatch ? '·mid일치나 단위상이' : ''}` };
     }
@@ -247,9 +246,9 @@ export async function resolveLowestPrices(
         // 긴 쿼리(구체적)는 자기 스토어 listing만 좁게 잡히기 쉽다(mid는 맞지만 타몰 최저가를 놓침).
         //   → 결과가 단일 몰뿐(타몰 후보 부재)일 때만 짧은 쿼리로 보강해 옥션·G마켓 등을 더 모은다.
         //     (이미 여러 몰이 잡혔으면 보강 생략 → 불필요한 API 2회 호출 회피). judge가 오탐 차단하므로 안전.
-        const items = await naverClient.search(query, 40);
+        const items = await naverClient.search(query, SEARCH.naverDisplay);
         if (new Set(items.map((i) => i.mallName)).size < 2) {
-          const more = await naverClient.search(buildQuery(target.name, true, target.brand), 40);
+          const more = await naverClient.search(buildQuery(target.name, true, target.brand), SEARCH.naverDisplay);
           const seen = new Set(items.map((i) => i.productId));
           for (const m of more) if (!seen.has(m.productId)) items.push(m);
         }

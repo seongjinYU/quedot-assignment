@@ -9,6 +9,7 @@
 //   ③ 평소엔 결정적 추출이 성공하므로 LLM 호출 0 — 필드가 실제로 빌 때만 동작.
 import OpenAI from 'openai';
 import type { RawProduct } from '../adapters/types.js';
+import { SELFHEAL_PAYLOAD_MAX } from '../config.js';
 
 /** 복구 대상 필드 스펙 (RawProduct의 스칼라 필드). key=raw필드, type=grounding 방식, label=LLM 지시문 */
 interface FieldSpec {
@@ -123,7 +124,7 @@ export class SelfHealer {
   /** 원본 payload에서 누락 필드만 추출하도록 LLM에 요청 (grounded·structured output). */
   private async askLLM(fields: RecoverableField[], payload: string): Promise<Record<string, string | null>> {
     // 토큰 보호: 원본이 크면 앞부분만(핵심 필드는 보통 상단). grounded 검증은 전체 원본으로 별도 수행.
-    const trimmed = payload.length > 12000 ? payload.slice(0, 12000) : payload;
+    const trimmed = payload.length > SELFHEAL_PAYLOAD_MAX ? payload.slice(0, SELFHEAL_PAYLOAD_MAX) : payload;
     const properties: Record<string, any> = {};
     const directives: string[] = [];
     for (const f of fields) {

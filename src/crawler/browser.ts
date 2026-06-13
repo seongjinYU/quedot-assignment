@@ -6,6 +6,7 @@ import stealthPlugin from 'puppeteer-extra-plugin-stealth';
 import type { BrowserContext, Page } from 'playwright';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { TIMING } from '../config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SESSION = path.resolve(__dirname, '../../naver-session');
@@ -43,7 +44,7 @@ export class BrowserSession {
     });
     this.page = this.ctx.pages()[0] ?? (await this.ctx.newPage());
     await this.page.goto(originUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await this.page.waitForTimeout(1500);
+    await this.page.waitForTimeout(TIMING.pageSettle);
   }
 
   /** 네이버 로그인 여부 (NID_AUT 쿠키) */
@@ -68,7 +69,11 @@ export class BrowserSession {
     if (this.opts.rateLimitMs) await this.page.waitForTimeout(this.opts.rateLimitMs);
   }
 
-  /** 내부 API GET (브라우저 세션 컨텍스트에서 실행) */
+  /**
+   * 내부 API GET (브라우저 세션 컨텍스트에서 실행).
+   * ⚠️ 신뢰 경계: url은 반드시 코드 내부에서 생성한 값만 전달할 것(어댑터의 apiBase + 채널/상품ID 등).
+   *    사용자 입력이 url에 흘러들면 인증 세션(credentials:include)으로 임의 same-origin 요청이 가능해진다.
+   */
   async apiGet<T = any>(url: string): Promise<ApiResult<T>> {
     await this.throttle();
     return this.page.evaluate(async (u) => {
@@ -112,7 +117,7 @@ export class BrowserSession {
   async goto(url: string): Promise<void> {
     await this.throttle();
     await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForTimeout(TIMING.navSettle);
   }
 
   /** 페이지 하단까지 스크롤 (지연 로딩/페이지네이션 노출용) */

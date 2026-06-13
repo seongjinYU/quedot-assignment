@@ -248,8 +248,10 @@ async function main() {
 
     fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
     const productCount = new Set(results.map((r) => r.meta.productNo)).size;
+    // 증분 모드면 재사용 건수를 함께 표기(실패 수가 fresh 기준임을 명확히 — 통계 해석 모호 방지)
+    const incNote = incremental && incPlan ? ` · 재사용 ${incPlan.reuse.length}상품(이번 크롤 ${freshIds.length})` : '';
     console.log(
-      `\n✓ 저장: ${outPath} (상품 ${productCount}건 / SKU ${results.length}건, 실패 ${failures.length}개)`,
+      `\n✓ 저장: ${outPath} (상품 ${productCount}건 / SKU ${results.length}건, 이번 크롤 실패 ${failures.length}개${incNote})`,
     );
     // 다음 증분용 캐시 저장(가격 시그널) — 전수/증분 모두 갱신
     fs.writeFileSync(cachePath, JSON.stringify(buildCache(storeName, results), null, 2));
