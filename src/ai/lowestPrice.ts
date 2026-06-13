@@ -107,17 +107,23 @@ export interface Target {
   naverMid: string | null;
   name: string;
   brand: string | null;
-  salePrice: number | null;
+  salePrice: number | null; // 옵션별 판매가 중 최소(가격 sanity 하한 기준 + LLM "우리 판매가")
+  salePriceMax?: number | null; // 옵션별 판매가 중 최대(가격 sanity 상한 기준). 미지정 시 salePrice 사용
 }
 
 /** 검색결과 item이 우리 상품과 "동일"한지 — 오탐 방지 가드. */
 export function judge(item: NaverShopItem, t: Target): { ok: boolean; reason: string } {
   const midMatch = !!(t.naverMid && item.productId === String(t.naverMid));
 
-  // 가격 sanity (우리 판매가의 0.3~3배) — mid일치여도 단위 다르면(세트 vs 개당) 제외
-  if (t.salePrice && t.salePrice > 0) {
-    const ratio = item.lprice / t.salePrice;
-    if (ratio < 0.3 || ratio > 3) return { ok: false, reason: `가격 이상(${round1(ratio)}배)${midMatch ? '·mid일치나 단위상이' : ''}` };
+  // 가격 sanity (우리 판매가의 0.3~3배) — mid일치여도 단위 다르면(세트 vs 개당) 제외.
+  //   옵션별 판매가가 다른 상품은 [최소~최대] 범위로 판단(첫 SKU 기준이면 다른 옵션에 맞는 후보를 부당 탈락).
+  const sMin = t.salePrice;
+  const sMax = t.salePriceMax ?? t.salePrice;
+  if (sMin && sMin > 0 && sMax && sMax > 0) {
+    if (item.lprice < sMin * 0.3 || item.lprice > sMax * 3) {
+      const ratio = round1(item.lprice / sMin);
+      return { ok: false, reason: `가격 이상(${ratio}배)${midMatch ? '·mid일치나 단위상이' : ''}` };
+    }
   }
   // ① syncNvMid 정확 일치 → 동일 상품 확정 (가격 통과 후)
   if (midMatch) return { ok: true, reason: `pid==mid(${item.productId})` };
@@ -181,16 +187,22 @@ interface Candidate {
   strong: boolean; // true=pid==mid 정확매칭(LLM 불필요) / false=휴리스틱(LLM 검수 대상)
 }
 
-/** 간단 동시성 풀 — items를 워커 concurrency개로 나눠 동시 처리(에누리 page 풀 크기와 맞춤). 단일 워커 실패는 격리. */
-async function runPool<T>(items: T[], concurrency: number, fn: (item: T) => Promise<void>): Promise<void> {
+/**
+ * 간단 동시성 풀 — items를 워커 concurrency개로 나눠 동시 처리(에누리 page 풀 크기와 맞춤). 단일 워커 실패는 격리.
+ * 각 item의 결과(R)를 입력 순서대로 모아 반환 → 호출부가 공유 가변 상태(report)를 await 가로질러 수정하지
+ * 않고, 반환된 부분 결과를 마지막에 합산할 수 있다(race 회피).
+ */
+async function runPool<T, R>(items: T[], concurrency: number, fn: (item: T, index: number) => Promise<R>): Promise<R[]> {
+  const results = new Array<R>(items.length);
   let next = 0;
   const worker = async () => {
     while (next < items.length) {
-      const item = items[next++];
-      await fn(item);
+      const i = next++;
+      results[i] = await fn(items[i], i);
     }
   };
   await Promise.all(Array.from({ length: Math.min(Math.max(1, concurrency), items.length) }, worker));
+  return results;
 }
 
 /**
@@ -209,31 +221,38 @@ export async function resolveLowestPrices(
     else byProduct.set(r.meta.productNo, [r]);
   }
 
-  const report: LowestPriceReport = { attempted: 0, resolved: 0, nullCount: 0, bySource: { naver: 0, enuri: 0, store: 0 } };
   const groups = [...byProduct.values()];
   const concurrency = opts.enuri ? 4 : 8; // 에누리 page 풀(4)에 맞춤 / 네이버만이면 API 병렬
+  const dbg = (e: unknown) => { if (process.env.DEBUG) console.error('  [lowestPrice]', e instanceof Error ? e.message : e); };
 
-  await runPool(groups, concurrency, async (skus) => {
+  // 각 그룹(상품)이 부분 집계를 반환 → race 없이 마지막에 합산(공유 report를 await 가로질러 수정하지 않음).
+  const parts = await runPool(groups, concurrency, async (skus): Promise<LowestPriceReport> => {
+    const part: LowestPriceReport = { attempted: 1, resolved: 0, nullCount: 0, bySource: { naver: 0, enuri: 0, store: 0 } };
     const rep = skus[0];
     const naverMid = rep.meta.naverMid != null ? String(rep.meta.naverMid) : null;
-    const target: Target = { naverMid, name: rep.data.name ?? '', brand: rep.data.brand_name, salePrice: rep.data.sales_price };
+    // 옵션별 판매가 범위(가격 sanity를 첫 SKU가 아닌 [최소~최대]로 — 다른 옵션 맞는 후보를 부당 탈락 방지)
+    const sales = skus.map((s) => s.data.sales_price).filter((p): p is number => p != null && p > 0);
+    const target: Target = {
+      naverMid, name: rep.data.name ?? '', brand: rep.data.brand_name,
+      salePrice: sales.length ? Math.min(...sales) : rep.data.sales_price,
+      salePriceMax: sales.length ? Math.max(...sales) : rep.data.sales_price,
+    };
     const query = buildQuery(target.name, false, target.brand);
     const fetchedAt = new Date().toISOString();
     const candidates: Candidate[] = [];
-    report.attempted++;
 
     // ① 네이버 (naverMid 정확매칭 활용 — 키 있고 매칭키 있을 때)
     if (naverClient && naverMid) {
       try {
-        // 긴 쿼리로 1차(display 넉넉히 40 — 정확매칭이 상위 10위 밖이어도 회수). pid==mid를 못 찾으면
-        // 짧은 쿼리로 한 번 더 검색해 합친다(검색결과가 달라 정확매칭이 잡힐 수 있음). judge는 그대로라 오탐 위험 0.
         // 긴 쿼리(구체적)는 자기 스토어 listing만 좁게 잡히기 쉽다(mid는 맞지만 타몰 최저가를 놓침).
-        //   → 짧은 쿼리로 항상 보강해 옥션·G마켓 등 동일상품 타몰 후보를 더 모은다. mid는 '동일상품 확정'
-        //     신호로만 쓰고, 최저가는 전체 후보에서 고른다(judge가 오탐 차단하므로 후보를 넓혀도 안전).
+        //   → 결과가 단일 몰뿐(타몰 후보 부재)일 때만 짧은 쿼리로 보강해 옥션·G마켓 등을 더 모은다.
+        //     (이미 여러 몰이 잡혔으면 보강 생략 → 불필요한 API 2회 호출 회피). judge가 오탐 차단하므로 안전.
         const items = await naverClient.search(query, 40);
-        const more = await naverClient.search(buildQuery(target.name, true, target.brand), 40);
-        const seen = new Set(items.map((i) => i.productId));
-        for (const m of more) if (!seen.has(m.productId)) items.push(m);
+        if (new Set(items.map((i) => i.mallName)).size < 2) {
+          const more = await naverClient.search(buildQuery(target.name, true, target.brand), 40);
+          const seen = new Set(items.map((i) => i.productId));
+          for (const m of more) if (!seen.has(m.productId)) items.push(m);
+        }
         for (const it of items) {
           const j = judge(it, target);
           if (j.ok && it.lprice > 0) {
@@ -242,7 +261,7 @@ export async function resolveLowestPrices(
             candidates.push({ price: it.lprice, source: '네이버쇼핑', mall: it.mallName, reason: `pid:${it.productId}·${j.reason}`, name: it.title, strong });
           }
         }
-      } catch { /* 격리 */ }
+      } catch (e) { dbg(e); /* 상품 단위 격리 */ }
       if (opts.rateLimitMs) await sleep(opts.rateLimitMs);
     }
 
@@ -257,7 +276,7 @@ export async function resolveLowestPrices(
           // 에누리는 mid 없음 → 모델코드 일치 시 strong(확정, LLM 생략), 아니면 weak(LLM 검수)
           if (j.ok && e.price > 0) candidates.push({ price: e.price, source: '에누리', mall: e.mall || '오픈마켓', reason: j.reason, name: e.name, strong: shareModelCode(target.name, e.name) });
         }
-      } catch { /* 격리 */ }
+      } catch (e) { dbg(e); /* 상품 단위 격리 */ }
     }
 
     // 동일상품 LLM 검수 — 결정적 사전필터(②③④⑤)를 통과한 '약한'(비-mid) 후보만 의미 판정.
@@ -272,7 +291,7 @@ export async function resolveLowestPrices(
             { name: target.name, salePrice: target.salePrice },
             weak.map((c) => ({ name: c.name, price: c.price })),
           );
-        } catch { /* LLM 실패 → 약한 후보 전부 제외(보수적) */ }
+        } catch (e) { dbg(e); /* LLM 실패 → 약한 후보 전부 제외(보수적) */ }
         const ok = new Set(okIdx);
         finalCands = [...candidates.filter((c) => c.strong), ...weak.filter((_, i) => ok.has(i))];
       } else {
@@ -282,9 +301,9 @@ export async function resolveLowestPrices(
     }
 
     if (finalCands.length === 0) {
-      apply(skus, null, { method: 'empty', reason: naverMid ? '동일상품 미확정(mid 불일치·LLM 검수 통과 후보 없음·오탐 방지)' : '동일상품 미확정(LLM 검수 통과 후보 없음·오탐 방지)' });
-      report.nullCount += skus.length;
-      return;
+      applyEmpty(skus, naverMid ? '동일상품 미확정(mid 불일치·LLM 검수 통과 후보 없음·오탐 방지)' : '동일상품 미확정(LLM 검수 통과 후보 없음·오탐 방지)');
+      part.nullCount = skus.length;
+      return part;
     }
 
     // ④ 시장 최저(검수 통과) 후보. 단 lowest_price는 상품(productNo) 단위 1회 조회라 옵션별 가격을
@@ -300,29 +319,44 @@ export async function resolveLowestPrices(
         s.data.lowest_price = sp;
         s.provenance.lowest_price = {
           method: 'crawled',
+          mall: '판매처(브랜드스토어)',
           source: `판매처(브랜드스토어) 최저 · 타몰 최저 ${marketBest.price.toLocaleString()}원(${marketBest.source}·${marketBest.mall}${llmTag})`,
           fetchedAt,
         };
-        report.bySource.store++;
+        part.bySource.store++;
       } else {
         s.data.lowest_price = marketBest.price;
         s.provenance.lowest_price = {
           method: 'crawled',
+          mall: marketBest.mall,
           source: `${marketBest.source} · ${marketBest.mall} · ${marketBest.reason}${llmTag}`,
           fetchedAt,
         };
-        if (marketBest.source === '네이버쇼핑') report.bySource.naver++;
-        else report.bySource.enuri++;
+        if (marketBest.source === '네이버쇼핑') part.bySource.naver++;
+        else part.bySource.enuri++;
       }
     }
-    report.resolved += skus.length;
+    part.resolved = skus.length;
+    return part;
   });
+
+  // 부분 집계 합산
+  const report: LowestPriceReport = { attempted: 0, resolved: 0, nullCount: 0, bySource: { naver: 0, enuri: 0, store: 0 } };
+  for (const p of parts) {
+    report.attempted += p.attempted;
+    report.resolved += p.resolved;
+    report.nullCount += p.nullCount;
+    report.bySource.naver += p.bySource.naver;
+    report.bySource.enuri += p.bySource.enuri;
+    report.bySource.store += p.bySource.store;
+  }
   return report;
 }
 
-function apply(skus: NormalizedProduct[], price: number | null, prov: NormalizedProduct['provenance']['lowest_price']) {
+/** 동일상품 미확정 → 공란(null) + 사유. (지어내지 않는다 원칙) */
+function applyEmpty(skus: NormalizedProduct[], reason: string) {
   for (const s of skus) {
-    s.data.lowest_price = price;
-    s.provenance.lowest_price = prov;
+    s.data.lowest_price = null;
+    s.provenance.lowest_price = { method: 'empty', reason };
   }
 }

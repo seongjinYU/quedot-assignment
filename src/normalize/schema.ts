@@ -41,6 +41,8 @@ export interface FieldProvenance {
   source?: string;
   /** crawled(외부 실조회: lowest_price)일 때 수집 시각 — 명세 "출처·수집 시각 함께 기록" */
   fetchedAt?: string;
+  /** crawled(lowest_price)일 때 최저가가 나온 쇼핑몰명(옥션·G마켓·판매처 등) — 뷰어·집계용 별도 필드 */
+  mall?: string;
 }
 
 /** 출력 1건 = 정규화 결과 + 처리 메타 */
