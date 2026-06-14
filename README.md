@@ -1,237 +1,408 @@
 # 큐닷 AX 과제 — 브랜드 스토어 → 큐닷 상품제안서 자동 정규화
 
-브랜드 스토어 URL 하나를 넣으면 **전 상품을 크롤링 → AI로 분석·구조화 → 큐닷 상품제안서(JSON)** 로 자동 정규화합니다.
-네이버 스마트스토어/브랜드스토어와 비(非)네이버 공식몰(고도몰)을 지원하며, **다른 링크를 넣어도 동작**하도록 어댑터 패턴으로 설계했습니다.
+> **브랜드몰 URL 하나로 전 상품을 견고하게 크롤링하고, AI로 분석해 큐닷 상품업로드 양식으로 자동 정규화하는 도구.**
 
-> 이 과제의 목표는 "많이·빠르게 긁기"가 아니라 **"바로 쓸 수 있는, 근거가 검증된 데이터"** 입니다.
-> AI는 비싸고 틀릴 수 있는 부품으로 다루고(룰 우선·검증·fallback), 못 채운 값은 지어내지 않고 사유와 함께 비웠습니다.
+네이버 스마트스토어·브랜드스토어와 비(非)네이버 공식몰(고도몰)을 지원하며, **다른 링크를 넣어도 동작**하도록 어댑터 패턴으로 설계했습니다.
 
----
+## 이 도구가 푸는 문제
 
-## 1. 핵심 설계 원칙 (타협하지 않은 것)
+큐닷 운영팀이 새 브랜드를 온보딩할 때, 공식몰·스마트스토어를 보며 **상품제안서를 수백 줄 손으로 입력**하고 판매를 위해 **각 상품의 전사(全社) 최저가를 수기로 조사**합니다. 상품 수백 개 브랜드면 매번 수 시간이 들고, 옮겨 적다 가격·옵션 오타가 반복됩니다.
+이 도구는 그 두 작업 — **제안서 정규화 + 최저가 조사** — 를 URL 하나로 자동화합니다.
 
-| 원칙 | 의미 |
-|---|---|
-| **결정적 추출** | 화면 셀렉터 파싱이 아니라 **내부 JSON API / 구조화 데이터**에서 추출. 셀렉터는 최후 수단. |
-| **룰 우선, LLM은 어려운 20%만** | 가격·이미지·이름은 코드로 결정적 처리. 비정형 분류·요약(category/hashtags/usp/옵션 의미배치)만 LLM. |
-| **AI 출력을 신뢰하지 않는다** | 모든 LLM 출력은 `validate.ts` 단일 관문의 스키마·범위 가드를 통과해야 한다. |
-| **지어내지 않는다** | 크롤·AI로 못 얻는 값은 **공란(null) + 사유(provenance)**. 추측으로 채우지 않는다. |
-| **크롤링 매너/합법성** | 요청 딜레이 유지, 과도한 요청 금지, 인증은 **사용자 본인 세션 재사용**. |
+## 무엇을 하는가
 
----
+URL을 넣으면 그 몰의 전 상품을 순회 수집하고, AI로 분석·구조화해 큐닷 상품제안서(JSON)로 정규화합니다.
 
-## 2. 아키텍처
+```mermaid
+flowchart LR
+    A["🔗 URL 입력<br/>네이버 · 고도몰<br/>(어댑터로 확장)"]:::entry --> B["🗂️ 전 상품<br/>목록 수집"]:::crawl
+    B --> C["⛏️ 결정적 크롤링<br/>이름·가격·옵션·이미지<br/>근거 부족 시 OCR 보강"]:::crawl
+    C --> D["🤖 AI 분석·구조화<br/>카테고리 · USP<br/>해시태그 · 옵션"]:::ai
+    D --> E["💰 시장 최저가 실조회<br/>네이버 + 에누리<br/>오탐 방지 (가산점)"]:::low
+    E --> F["📋 큐닷 제안서 JSON<br/>+ 검수 뷰어"]:::out
 
+    classDef entry fill:#EAF1FF,stroke:#2D6BFF,color:#1B47C2,stroke-width:2px;
+    classDef crawl fill:#E7F6EE,stroke:#16A34A,color:#0F7A37,stroke-width:1.5px;
+    classDef ai fill:#E9F0FE,stroke:#2563EB,color:#1D4FD7,stroke-width:1.5px;
+    classDef low fill:#F5E9FD,stroke:#9333EA,color:#7A23C0,stroke-width:1.5px;
+    classDef out fill:#2D6BFF,stroke:#1B47C2,color:#FFFFFF,stroke-width:1px;
 ```
-URL → [crawler] 통신 → [adapters] 스토어별 수집 → [normalize] 매핑·검증 → [ai] 분류·요약 → JSON
-                                  단방향 의존 (crawler → adapters → normalize → ai)
+
+<details>
+<summary><b>🔍 자세한 동작 흐름 보기</b> (조건부 분기 · 검증 관문 포함)</summary>
+
+```mermaid
+flowchart TD
+    URL["🔗 URL 입력"]:::entry --> ADP{"어댑터 매칭"}:::dec
+    ADP -->|네이버| NV["NaverStoreAdapter<br/>인증 세션 + 내부 JSON API"]:::crawl
+    ADP -->|고도몰| GD["GodomallAdapter<br/>순수 HTTP fetch"]:::crawl
+    ADP -->|그 외| ERR["❌ 명확한 에러<br/>(어댑터 추가하면 동작)"]:::opt
+
+    NV --> LIST["📑 목록 전수 수집"]:::crawl
+    GD --> LIST
+    LIST --> PRICE["💵 가격 배치 조회<br/>(개별 호출 회피)"]:::crawl
+    PRICE --> INC{"증분 모드?"}:::dec
+    INC -.신규·가격변경만.-> LOOP
+    INC -->|전수| LOOP["⛏️ 상품별 결정적 추출<br/>이름·가격·옵션·이미지"]:::crawl
+
+    LOOP --> OCR{"근거 부족<br/>+ 상세이미지?"}:::dec
+    OCR -.opt-in.-> OCRY["🔤 조건부 OCR 보강"]:::opt
+    OCR --> HEAL{"핵심필드<br/>누락?"}:::dec
+    OCRY --> HEAL
+    HEAL -.안전망.-> HEALY["🔧 자가복구<br/>(ai-recovery)"]:::opt
+    HEAL --> CAT["🏷️ 사이트 카테고리 수집<br/>(AI 분류 컨텍스트)"]:::ai
+    HEALY --> CAT
+
+    CAT --> AI["🤖 정규화 + AI 보강<br/>카테고리·USP·해시태그·3축 옵션"]:::ai
+    AI --> BUNDLE["🔗 묶음 가격 보정"]:::crawl
+    BUNDLE --> LOW["💰 최저가 실조회 (가산점)<br/>네이버 + 에누리 · 자사 제외<br/>오탐 시 null + 사유"]:::low
+    LOW --> VAL["🛡️ 검증 단일 관문<br/>validate.ts — 환각 차단"]:::gate
+    VAL --> OUT["📋 JSON + 품질 리포트"]:::out
+    OUT --> WEB["🖥️ 검수 뷰어 (web/)<br/>provenance 색코딩"]:::out
+
+    classDef entry fill:#EAF1FF,stroke:#2D6BFF,color:#1B47C2,stroke-width:2px;
+    classDef crawl fill:#E7F6EE,stroke:#16A34A,color:#0F7A37,stroke-width:1.5px;
+    classDef ai fill:#E9F0FE,stroke:#2563EB,color:#1D4FD7,stroke-width:1.5px;
+    classDef low fill:#F5E9FD,stroke:#9333EA,color:#7A23C0,stroke-width:1.5px;
+    classDef gate fill:#FFEAEB,stroke:#FB4D52,color:#C42E33,stroke-width:2px;
+    classDef out fill:#2D6BFF,stroke:#1B47C2,color:#FFFFFF,stroke-width:1px;
+    classDef opt fill:#F1F5F9,stroke:#94A3B8,color:#5E6E85,stroke-dasharray:5 4;
+    classDef dec fill:#FFFFFF,stroke:#2D6BFF,color:#0B1220,stroke-width:1.5px;
 ```
 
-- **어댑터 패턴**: 스토어별 수집기는 `StoreAdapter` 인터페이스 구현. **새 몰 = 어댑터 1개 추가.**
-- **AI는 인터페이스(`Enricher`)로 추상화** → 룰/OpenAI 교체 가능, 키 없으면 룰 baseline으로 자동 강등.
-- **환각 차단 단일 관문(`validate.ts`)**: provider(openai/rule/fallback) 경로 무관하게 최종 산출물은 반드시 통과.
-- **상품 단위 에러 격리**: 한 상품이 실패해도 로그 남기고 다음 상품 계속.
+</details>
 
-> 📊 전체 크롤링→저장 흐름 시각화: **`docs/crawl-flow.html`** (브라우저로 열면 단계별 다이어그램 + 실제 샘플)
+## 핵심 차별점 — "지어내지 않는다"
 
-### 지원 스토어
-
-| 스토어 | 어댑터 | 방식 |
-|---|---|---|
-| 네이버 스마트스토어 | `NaverStoreAdapter` | 인증 브라우저 세션 + 내부 JSON API(`/i/v2/...`) |
-| 네이버 브랜드스토어 | `NaverStoreAdapter` (재사용) | 동일 (prefix `/n/` 차이만) |
-| 고도몰 기반 공식몰 | `GodomallAdapter` | 순수 HTTP fetch + cheerio (브라우저 불필요) |
-| 그 외 (미지원 플랫폼) | — | 런타임 검증 후 **명확한 에러로 graceful 실패** |
-
-`GodomallAdapter`는 특정 도메인이 아니라 **고도몰 플랫폼 자체**(godomall/NHN커머스 마커)를 감지하므로, happyland 외 다른 고도몰 쇼핑몰도 자동으로 동작합니다.
+AI는 *틀릴 수 있는 부품*으로 다룹니다. 정형 데이터(가격·이름·이미지)는 코드로 **결정적 추출**하고, 비정형(카테고리·USP·해시태그·옵션 배치)만 LLM에 맡기되 **모든 LLM 출력은 검증 관문(`validate.ts`)을 통과**해야 합니다. 크롤·AI로 **못 얻는 값은 추측으로 채우지 않고 공란(null) + 사유**로 남깁니다.
+그래서 **모든 필드에 출처(`provenance`)가 추적**되어 — 원본 그대로인지, AI가 분류·생성했는지, 정직하게 비웠는지를 한눈에 검수할 수 있습니다.
 
 ---
 
-## 3. 실행 방법
+## 1. 실행 방법
 
 ### 설치
+
 ```bash
 npm install
-npx playwright install chromium   # 네이버 크롤링용 (고도몰만 쓰면 불필요)
-cp .env.example .env              # OPENAI_API_KEY (없으면 룰 baseline) / NAVER 키(가산점·선택)
+npx playwright install chromium   # 네이버 크롤용 (고도몰만 쓰면 생략 가능)
+cp .env.example .env              # 아래 환경변수 채우기
 ```
 
-### 크롤링
+### 환경변수 (`.env`)
+
+| 변수 | 필수도 | 용도 | 없으면 |
+|---|---|---|---|
+| `OPENAI_API_KEY` | 권장 | AI 분석(카테고리·USP·해시태그·옵션) · OCR · 자가복구 | **룰 baseline으로 자동 강등** (동작은 함) |
+| `NAVER_CLIENT_ID` / `NAVER_CLIENT_SECRET` | 선택(가산점) | `lowest_price` 네이버쇼핑 정확매칭 | 최저가는 에누리만 사용하거나 공란 |
+
+> 키가 없어도 파이프라인은 멈추지 않습니다 — AI는 룰로 강등되고, 최저가는 사유와 함께 공란 처리됩니다.
+
+### 크롤링 실행
+
 ```bash
-# 사용법: npm run crawl <스토어URL> <상품수limit> [ocr] [enuri]
-npm run crawl "https://smartstore.naver.com/phytonutri" 0          # 0 = 전수
-npm run crawl "https://brand.naver.com/kefii" 10
-npm run crawl "https://m.happylandmall.com/" 20
-npm run crawl "https://m.happylandmall.com/" 20 ocr                # OCR 보강 ON (아래 6번)
-npm run crawl "https://brand.naver.com/kefii" 10 enuri             # 최저가 실조회 ON (아래 6번·가산점)
+# 사용법: npm run crawl <URL> <상품수(0=전수)> [ocr] [enuri] [incremental]
+
+npm run crawl "https://brand.naver.com/kefii" 0 enuri     # 브랜드스토어 전수 + 최저가 실조회
+npm run crawl "https://smartstore.naver.com/phytonutri" 0 # 스마트스토어 전수
+npm run crawl "https://m.happylandmall.com/" 0 ocr        # 고도몰 전수 + 상세이미지 OCR
 ```
 
-- **네이버**: 최초 1회 브라우저 창에서 **직접 로그인** → 이후 persistent 세션 재사용(캡차 없음).
-- 결과: `output/{스토어명}.json` (정규화 데이터) + `output/{스토어명}.quality.json` (정제 품질 리포트).
+| 인자 | 의미 |
+|---|---|
+| `<URL>` | 스토어 URL (네이버 / 고도몰 — 어댑터 자동 선택) |
+| `<상품수>` | 처리할 상품 수. **`0` = 전수** |
+| `ocr` | 근거 부족 상품의 상세이미지 OCR 보강 (opt-in) |
+| `enuri` | 에누리(쿠팡 포함) 최저가 비교 활성 (opt-in) |
+| `incremental` | 이전 결과 대비 **신규·가격변경분만** 재크롤 |
+
+- **네이버**: 최초 1회 브라우저 창에서 직접 로그인 → 이후 `naver-session/`에 세션 저장돼 재사용(캡차 없음).
+- **결과물**: `output/{스토어}.json`(정규화 SKU) · `output/{스토어}.quality.json`(품질 리포트) · `output/{스토어}.cache.json`(증분용 가격 캐시).
+
+### 검수 뷰어 (web/) — 정규화 결과를 출처 색코딩으로 검수
+
+```bash
+cd web
+npm install
+npm run dev        # predev 가 ../output 을 읽어 web/data 로 동기화 → http://localhost:3000
+```
+
+- 크롤 결과(`output/*.json`)를 읽는 **읽기 전용 Next.js 뷰어**. 별도 DB·서버·키 불필요.
+- 배포: Vercel(Root Directory=`web`). 빌드 시 `../output`을 정적 생성(SSG)으로 굳혀 배포.
+
+### 평가자용 — 키·세션 없이 동작 검증
+
+```bash
+npm run verify   # 합성 hard 케이스를 실제 코드로 통과: 자가복구·증분·환각차단·옵션 가드
+npm test         # 단위 테스트: self-heal · incremental · option-guard
+```
 
 ---
 
-## 4. 출력 형식
+## 2. 기술 선택 이유
 
-출력은 **옵션 조합 1개 = SKU 1행**으로 펼쳐진 `NormalizedProduct[]` 입니다. 한 상품에 옵션이 8개면 8행이 나옵니다.
+| 선택 | 제약 / 문제 | 그래서 이렇게 |
+|---|---|---|
+| **1. TypeScript** (`tsx`) | 큐닷 스택 친화 · 큐닷 제안서라는 **고정 스키마**를 안전하게 다뤄야 함 | 빌드 단계 없이 실행(`tsx`), 스키마를 **타입으로 강제**해 매핑 단계에서 형식 오류를 컴파일 타임에 차단 |
+| **2. 크롤링: Playwright + stealth** | 네이버가 `curl`·기본 Playwright를 **429·캡차로 차단**, 화면 셀렉터 파싱은 구조 변경에 취약 | Playwright(+stealth)로 실제 브라우저처럼 접근하되, 파싱은 화면이 부르는 **내부 JSON API를 직접 호출**(결정적). 고도몰은 동적 렌더가 없어 **순수 HTTP fetch + cheerio**(브라우저 불필요) |
+| **3. OCR: `sharp` + gpt-4o-mini 비전** | 고도몰 상세는 본문이 **통이미지**라 USP·옵션 텍스트 근거가 0. 통짜 OCR은 다운스케일로 환각(유아 사이즈 `80~110`→`S/M/L`) | `sharp`로 **세로 스트립 분할 후** 고해상도 비전 OCR → 결합. **근거 부족 상품에만** opt-in(네이버는 셀러태그 보유 → 스킵, 비용 0) |
+| **4. 세션: 본인 로그인 세션 재사용** | 네이버 수집엔 로그인이 필요하고, 프록시·캡차솔버는 **계정·법적 리스크** | `launchPersistentContext`로 **최초 1회 직접 로그인** → `naver-session/`에 저장해 재사용. *"뚫는 기술"이 아니라 "리스크를 의식한 정공법"* (세션·키는 커밋 제외) |
+| **5. AI: OpenAI gpt-4o-mini** (structured output) | "AI 출력을 신뢰하지 말 것" · 비용 | **룰 우선, LLM은 비정형 20%만**(카테고리·USP·해시태그·옵션 배치). `json_schema`로 출력 형식 강제 + category 7종 enum 제약. 분류·요약·비전 전부 **mini로 충분**(가성비), 실패 시 룰 fallback |
+| **6. 어댑터 패턴** (`StoreAdapter`) | 몰마다 구조가 제각각이고, *"다른 링크를 넣어도 동작"* 요구 | 스토어별 수집기를 **인터페이스로 추상화** → **새 몰 = 어댑터 1개 추가**. `GodomallAdapter`는 도메인이 아니라 고도몰 **플랫폼 자체**를 감지해 다른 고도몰도 자동 동작 |
+| **7. 검수 뷰어: Next.js + Vercel** | 결과(JSON)를 평가자가 **셋업 0으로** 검수하면 좋음. 데이터는 정적(수백 행)·이미지는 원본 CDN | 크롤 결과를 읽는 **읽기 전용 Next.js 뷰어**(SSG, Vercel 배포). **DB·서버 없이** JSON 번들로 충분 — *데이터 규모상 Supabase는 오버엔지니어링이라 의도적으로 배제* |
+| **8. 최저가: 네이버쇼핑 OpenAPI(공식)** | 가산점 `lowest_price`엔 *시장 전체의 실제 최저가*가 필요. 쿠팡은 직접크롤(Akamai)·파트너스 API(심사) **둘 다 막힘** | **공식 OpenAPI**(`openapi.naver.com`, 키 발급·약관 동의)로 `syncNvMid` 정확매칭 → 가장 떳떳한 경로를 우선. 쿠팡 등 오픈마켓가는 **에누리(가격비교)로 우회** 보강 *(회고 4번)* |
+
+> ⚠️ **"네이버 API"는 두 가지로 갈립니다 — 용도가 다릅니다.**
+> ① **상품 크롤링**(2번): 스토어 상품을 가져오는 *공식 크롤링 API는 존재하지 않음* → 화면이 부르는 **내부 JSON API**를 직접 호출. ② **최저가**(8번): *공식* 네이버쇼핑 **OpenAPI** 사용.
+
+### 합법성 · 매너에 대한 입장
+
+크롤링을 "차단 우회 자랑"이 아니라 **"리스크를 인식한 정공법"**으로 접근했습니다.
+
+- **공식 API가 있으면 공식 API를 쓴다** — 최저가는 일부러 공식 네이버쇼핑 OpenAPI를 우선했습니다. 다만 *특정 스토어의 전 상품·옵션·재고*를 받는 공식 크롤링 API는 네이버에 **없어서**, 상품 수집은 브라우저 자동화가 불가피합니다.
+- **매너 있는 크롤링** — 요청 간 딜레이(`rateLimitMs: 1500`) 유지, 동시 요청 자제, **본인 로그인 세션** 사용(프록시·캡차솔버 같은 우회 도구 ✕). 인증 세션·키는 커밋에서 제외.
+- **OCR은 크롤링이 아니다** — 이미 정당하게 받아온 *상세페이지 이미지를 해석*하는 것일 뿐, 새로 무언가를 수집하지 않습니다. 합법성·매너 이슈와 무관합니다.
+- 공개 상품 정보의 자동 수집은 약관상 제한이 있을 수 있는 회색지대라, **상업적 재배포가 아닌 과제 목적**임을 전제로 위 원칙을 지켰습니다.
+
+---
+
+## 3. 회고
+
+### 어떤 선택을 왜 했는지 · 고민 · 트레이드오프
+
+#### 1. 네이버 봇 차단 — "뚫는 기술"보다 "안전한 정공법"
+
+네이버는 프로그램의 자동 접속을 막아둬서, 평범하게 요청하면 곧바로 차단되거나 보안문자(캡차)가 뜹니다. 이걸 억지로 우회하는 도구(가짜 IP 돌리기, 보안문자 자동 풀기)도 있었지만 계정 정지·약관 위반 위험이 컸습니다.
+
+→ 그래서 우회 대신, **사람이 한 번 직접 로그인해 둔 상태를 그대로 재사용**하는 방식을 골랐습니다.
+
+> **트레이드오프** — 안전하고 차단도 안 당하는 대신, 맨 처음 한 번은 사람이 직접 로그인해줘야 합니다.
+
+#### 2. 이미지 속 상품 설명 — OCR 활용
+
+상품의 소구점(USP)은 상세페이지 설명에서 뽑는 게 가장 정확합니다. 그런데 설명이 글이 아니라 **이미지로 된 경우**가 많아 컴퓨터가 바로 읽을 글자가 없었습니다.
+
+→ 그래서 **사진 속 글자를 읽어내는 OCR 기술**로 이미지에서 설명을 추출해 USP의 근거로 삼았습니다.
+
+> **트레이드오프** — 설명 근거가 아예 없는 상품은 USP를 **억지로 지어내지 않고 비웠습니다**(지어내는 것보다 비우는 게 낫다는 원칙). 다만 글이 아닌 이미지라, OCR 정확도에 기대야 하는 한계는 남습니다.
+
+#### 3. AI는 "기본값"이 아니라 "검증된 도구" — 믿지 않고 가둬서 썼다
+
+과제는 *"AI로 분석하라"*와 *"AI 출력을 믿지 말라"*를 동시에 요구했습니다. 그래서 AI를 **꼭 필요한 데만, 그것도 검증을 거쳐** 쓰도록 가뒀습니다.
+
+- **분류는 사이트에게 물었다** — 카테고리를 키워드 규칙으로 맞추려니 하나 고치면 다른 게 틀어지는 끝없는 땜질이었습니다. 결국 **그 사이트의 카테고리 메뉴 자체를 읽어** AI에게 판단 근거로 줬더니 깔끔히 해결됐습니다("사이트가 답을 알고 있었다").
+- **AI 출력은 검문소를 통과시켰다** — AI가 만든 값(카테고리·설명 등)은 곧바로 쓰지 않고, **하나의 검증 관문**을 반드시 거치게 했습니다(틀린 형식·근거 없는 설명·이상한 값은 여기서 차단).
+- **AI는 안전망으로만** — 핵심 정보(이름·가격)가 비었을 때만 AI가 원본에서 복구하게 했고, 평소엔 호출하지 않습니다.
+
+> **트레이드오프** — AI를 적게 쓰니 비용·오류는 줄지만, "AI가 알아서 다 해주는" 화려함은 포기했습니다. 대신 **결과를 믿을 수 있게** 됐습니다.
+
+#### 4. 시장 최저가 — 막다른 길에서 찾은 우회로, 그리고 "내 가게를 최저가로 착각한" 버그
+
+가산점 항목인 '시장 최저가'는 여러 쇼핑몰 중 가장 싼 값을 찾아야 합니다. 처음엔 "최저가라면 쿠팡"이라 보고 쿠팡을 노렸지만 — 직접 접근은 강력한 차단에 막히고, 공식 제휴 API는 사업자 심사가 필요해 **둘 다 막다른 길**이었습니다.
+
+→ 쿠팡을 직접 건드리는 대신, **여러 쇼핑몰 가격을 한곳에 모아 보여주는 가격비교 사이트(에누리)와 네이버쇼핑 공식 검색**을 함께 쓰는 우회로를 택했습니다.
+
+- **고민한 핵심** — 가장 어려운 건 "이게 정말 같은 상품인가?"였습니다. '여행용 세트'나 '1+1 묶음'을 같은 상품으로 착각하면 엉뚱한 최저가가 들어갑니다. 그래서 확실한 신호(상품 고유번호·모델코드)가 맞으면 채택하고, 애매하면 **AI에게 "같은 상품인지" 판정**시켰습니다. 그래도 확신이 없으면 **틀린 값을 넣느니 비웠습니다.**
+- **실데이터로 잡은 결정적 버그** — 완성했다고 생각한 뒤 실제 결과를 눈으로 보다가, **자기 가게(브랜드 자사몰)를 '최저가'로 잡는** 버그를 발견했습니다. 최저가는 "우리 말고 다른 데서 더 싼 곳"이어야 하는데, 정확매칭이 자사몰을 1순위로 끌어와 의미가 없어진 것이죠. → **자사몰은 후보에서 제외**하도록 바로잡았습니다.
+
+> **트레이드오프** — 오탐을 피하려 보수적으로 가니 최저가를 못 채운 상품도 생깁니다. 하지만 명세가 *"오탐 방지가 핵심"*이라 못 박은 만큼, **틀린 값보다 빈칸**을 택했습니다.
+
+#### 5. 속도 vs 안전 — "빨리 긁기" 대신 "적게 호출하기"
+
+상품이 수십~수백 개라 하나씩 다 열어보면 느립니다. 빨리 끝내려면 요청 사이 간격을 줄이면 되지만, 그러면 **너무 잦은 접속으로 차단당할 위험**이 커집니다.
+
+→ 간격을 줄이는 대신, **요청 횟수 자체를 줄이는** 쪽으로 속도를 확보했습니다. 목록에서 한 번에 얻는 정보는 상품마다 다시 묻지 않고, 가격도 여러 상품을 **한 번에 묶어** 조회했습니다.
+
+> **트레이드오프** — 접속 간격(매너)은 그대로 지키니 전수 수집엔 시간이 걸리지만, **차단 위험 없이 안정적으로** 전 상품을 모읍니다. 속도를 위해 안전을 깎지 않았습니다.
+
+---
+
+### 새로 알게 된 점
+
+- **"검증했다"는 말 자체가 검증 대상이다.** 중요한 버그(자기 가게를 최저가로 착각한 것 등)는 **실제 결과를 눈으로 보다가** 나왔습니다.
+- **AI는 적게 쓸수록 믿을 수 있다.** "AI가 알아서 다 해준다"보다, 꼭 필요한 20%에만 검증을 거쳐 쓰니 오히려 결과를 신뢰하게 됐습니다.
+
+### 시간·여건이 더 있었다면 시도할 것
+
+- **가격비교 소스 다양화** — 지금은 에누리·네이버 2곳입니다. 다나와 등 여러 곳으로 교차검증하면 최저가 신뢰도가 올라갑니다(특히 의류처럼 가격비교가 약한 카테고리).
+- **OCR 속도·정확도 개선** — 이미지에서 설명을 읽어내는 작업이 느리고 정확도에 한계가 있습니다.
+- **새 쇼핑몰 수집 어댑터 추가** — 지금은 네이버·고도몰 2종을 지원합니다. 무신사·자사몰 솔루션 등 다른 플랫폼도 어댑터를 추가해 직접 수집하고 싶습니다.
+
+### 실제 서비스로 확장한다면 고려할 포인트
+
+- **공식 API·제휴 우선** — 본인 로그인 세션 재사용은 과제 규모엔 적절하지만, 여러 스토어를 상시 수집하는 서비스라면 정식 파트너십·공식 API가 맞습니다.
+- **어댑터 자동 생성** — 지금은 새 쇼핑몰을 지원하려면 사람이 그 사이트에 맞는 어댑터를 직접 만들어야 합니다. 사이트 구조를 분석해 **어댑터를 자동으로 생성**하면, URL만 넣으면 어떤 몰이든 수집하는 데 한발 더 가까워집니다.
+
+---
+
+## 4. 샘플 출력 (대상 스토어 3곳)
+
+출력 1건은 **옵션 조합(SKU) 단위**이며, 각 필드값과 함께 *어떻게 얻었는지*(`provenance`)를 기록합니다. 전체 결과는 [`output/`](./output) 디렉터리(`{스토어}.json` + `{스토어}.quality.json`)에 있습니다.
+
+### ① phytonutri (네이버 스마트스토어) — provenance까지 전체
 
 ```jsonc
 {
-  "data": {                          // ← 큐닷 상품제안서 필드
-    "brand_name": "케피",
-    "name": "케피 버블클렌저 3개 핑크+옐로우+퍼플 ...",
-    "image_url": "https://...rep.jpg",
-    "option1": "버블클렌저",          // 색상/종류
-    "option2": "핑크+옐로우+퍼플",     // 구성/수량/사이즈
-    "consumer_price": 32700,          // 정가
-    "sales_price": 18300,             // 즉시할인 적용가
-    "discount_rate": 44,
-    "lowest_price": 18300,            // 시장 전체 실조회 최저가 (이 상품은 정품 동일listing이 최저=판매가와 동일)
-    "hashtags": ["버블클렌저", "유아바디워시", ...],
-    "usp": "아기와 함께 즐길 수 있는 다양한 색상의 거품 목욕 제품입니다.",
-    "category_group": ["유아 생활"]   // 큐닷 7종 enum
+  "data": {
+    "brand_name": "파이토뉴트리",
+    "name": "지니어스뉴 DHA ALA 영양 제품 올로메가 베이비 스마트 이유식 부스터 드롭스",
+    "image_url": "https://shop-phinf.pstatic.net/.../68940007644304227_1216296138.jpg",
+    "option1": "지니어스뉴 드롭스 1개 / 오프너O",
+    "option2": null,
+    "consumer_price": 46000,
+    "sales_price": 26800,
+    "lowest_price": 26800,
+    "discount_rate": 41.7,
+    "hashtags": ["DHA", "영양제", "이유식"],
+    "usp": "두뇌 발달을 위한 오메가3 성분이 포함된 제품입니다.",
+    "category_group": ["유아 건강"]
   },
-  "provenance": {                     // ← 각 값을 "어떻게 얻었는지" (정직성)
-    "name": { "method": "deterministic" },
-    "usp":  { "method": "ai", "source": "상세이미지OCR / openai" },
-    "lowest_price": { "method": "crawled", "source": "네이버쇼핑+에누리 실조회 · pid==mid 정확매칭(정품 동일listing=판매가)", "fetchedAt": "2026-06-12T..." }
+  "provenance": {
+    "brand_name":     { "method": "deterministic" },
+    "name":           { "method": "deterministic" },
+    "image_url":      { "method": "deterministic" },
+    "option1":        { "method": "deterministic", "source": "옵션 정규화(룰: 위치 기반·수식어 제거)" },
+    "option2":        { "method": "empty", "reason": "단일 옵션 축" },
+    "consumer_price": { "method": "deterministic" },
+    "sales_price":    { "method": "deterministic" },
+    "discount_rate":  { "method": "calculated" },
+    "lowest_price":   { "method": "crawled", "source": "네이버쇼핑 · pid==mid", "fetchedAt": "2026-06-12T19:31:..." },
+    "hashtags":       { "method": "ai", "source": "sellerTags+상품명 / openai" },
+    "usp":            { "method": "ai", "source": "상품명+태그 / openai" },
+    "category_group": { "method": "ai", "source": "카테고리경로+스토어카테고리 / openai" }
   },
-  "meta": {                           // ← 추적·검수용 (출처·옵션 인덱스·근거 유무)
-    "productNo": "4971375678", "naverMid": 82515896000,
-    "optionIndex": 0, "optionTotal": 12,
-    "basis": { "categoryPath": true, "detailText": false, "sellerTags": true, "usp": true }
-  }
+  "meta": { "productNo": "9623766251", "naverMid": 87168268521, "basis": { "categoryPath": true, "usp": true } }
 }
 ```
 
+### ② kefii (네이버 브랜드스토어) — 2축 옵션(색상 조합)
+
+```jsonc
+{
+  "data": {
+    "brand_name": "케피",
+    "name": "케피 버블클렌저 3개 핑크+옐로우+퍼플 아기 거품목욕 버블스프레이 유아바스",
+    "image_url": "https://shop-phinf.pstatic.net/.../51094225557261089_1625051651.jpg",
+    "option1": "버블클렌저 200ml 3개",
+    "option2": "핑크+옐로우+퍼플",
+    "consumer_price": 32700, "sales_price": 18300, "lowest_price": 18300, "discount_rate": 44,
+    "hashtags": ["버블클렌저", "유아거품목욕", "아기바디워시", "..."],
+    "usp": "아기 거품목욕을 위한 버블클렌저 3개 세트.",
+    "category_group": ["유아 놀이 교육", "유아 생활"]
+  }
+  // provenance: option1/2 = deterministic, lowest_price = crawled(네이버), hashtags/usp/category = ai
+}
+```
+
+### ③ happylandmall (고도몰 공식몰) — 색상×사이즈, 에누리 최저가, OCR 근거 USP
+
+```jsonc
+{
+  "data": {
+    "brand_name": "해피랜드",
+    "name": "[해피랜드] 코벤트 민소 상하 H1321210",
+    "image_url": "https://godomall-storage.cdn-nhncommerce.com/.../1000000641_main_04.jpg",
+    "option1": "노랑", "option2": "100",
+    "consumer_price": 28000, "sales_price": 28000, "lowest_price": 23520, "discount_rate": 0,
+    "hashtags": ["코번트민소", "상하복", "스트라이프", "..."],
+    "usp": "청량한 색감의 스트라이프 패턴과 동물 그래픽이 포인트인 민소매 상하복입니다.",
+    "category_group": ["유아 생활"]
+  }
+  // provenance: lowest_price = crawled(에누리·마리오아울렛), usp = ai(상세이미지OCR) ← 상세가 이미지라 OCR로 근거 확보
+}
+```
+
+> **검수 뷰어(배포)**: *(배포 후 URL 추가 예정)* — 전 상품을 출처 색코딩으로 검수.
+
 ---
 
-## 5. 필드별 처리 방식
+## 5. 필드별 처리 설명
 
-| 필드 | 처리 | 출처 |
+### 각 필드를 어떻게 채웠는지
+
+색 구분: 🟢 **결정적/계산**(코드로 원본 추출) · 🔵 **AI**(비정형, LLM) · 🟣 **외부 실조회**
+
+| 필드 | 처리 | 방법 |
 |---|---|---|
-| `brand_name` | **결정적** | 네이버 `naverShoppingSearchInfo.brandName` / 고도몰 상품명 `[브랜드]` |
-| `name` | **결정적** | 상세 API `name` / 목록 카드 `data-goods-nm` |
-| `image_url` | **결정적** | 대표 이미지(REPRESENTATIVE) 1장 (전체는 내부 `images[]`에 보유) |
-| `consumer_price` | **결정적/계산** | 정가 + 옵션 추가금 |
-| `sales_price` | **결정적/계산** | 네이버 `product-benefits` 배치 즉시할인가 / 고도몰 정가판매 |
-| `discount_rate` | **계산** | (정가−판매가)/정가 ×100 |
-| `option1` / `option2` | **결정적 or AI** | 단일 축은 룰(결정적), 다축만 LLM 의미배치(종류↔구성) |
-| `hashtags` | **AI** | 셀러태그 + 상품명 (없으면 상세이미지 OCR + 상품명) |
-| `usp` | **AI** | 상품명·태그·카테고리·상세설명에서 **확인된 사실만** (근거 없으면 공란) |
-| `category_group` | **AI** | 카테고리 경로 + 상품명 → 7종 enum 매핑 |
-| `lowest_price` | **실조회(가산점)** | 네이버쇼핑 OpenAPI + 에누리(쿠팡 포함) 시장 최저가 · mid/모델코드/LLM **3층 매칭**(오탐 시 `null`) |
+| `brand_name` `name` `image_url` | 🟢 결정적 | 내부 JSON API / 목록 카드에서 원본 그대로 |
+| `consumer_price` `sales_price` | 🟢 결정적 | 가격 API(네이버 `product-benefits` 배치) · 옵션 추가금은 합산 |
+| `discount_rate` | 🟢 계산 | `(정가 − 판매가) / 정가` 로 코드 계산 |
+| `option1` `option2` | 🟢 결정적(룰) | 위치 기반 + 수식어·이모지 제거. **3축일 때만** AI가 2칸으로 배치 |
+| `lowest_price` | 🟣 외부 실조회 | 네이버쇼핑 OpenAPI + 에누리, **자사몰 제외**, 오탐 시 공란 |
+| `hashtags` | 🔵 AI | 셀러태그 + 상품명 근거로 LLM 추출 |
+| `usp` | 🔵 AI | 상품명·태그·(이미지면 OCR) 근거로 LLM 생성 |
+| `category_group` | 🔵 AI | 사이트 카테고리 메뉴 + 상품을 LLM이 7종으로 분류 |
 
-> 모든 필드는 `provenance`에 `method`(deterministic/calculated/ai/empty)와 근거/사유가 기록됩니다.
-> `method`가 실제 처리 경로와 일치하도록 정직하게 표기합니다(예: 단일 축 옵션은 `ai`가 아니라 `deterministic`).
+> `method`는 실제 경로와 일치하게 정직 표기합니다(예: 단일 축 옵션은 `deterministic`, 추출 실패를 LLM이 복구하면 `ai-recovery`).
 
----
+### AI로 분석·분류한 필드 (명확히 구분)
 
-## 6. AI 활용 & 조건부 OCR (차별화)
+**`hashtags` · `usp` · `category_group`**, 그리고 **3축일 때의 옵션 배치**만 AI를 씁니다. 나머지(이름·가격·이미지·옵션 값)는 전부 코드로 결정적 처리합니다.
+**AI 출력은 모두 검증 관문(`validate.ts`)을 통과**해야 산출물에 들어갑니다 — 7종 밖 카테고리 제거·근거 없는 USP 무효화·이상 가격 차단.
 
-### 룰 우선 + 환각 차단
-- 정형 데이터는 코드로, **LLM은 category/hashtags/usp/옵션 의미배치만** 담당.
-- OpenAI **structured output(json_schema)** 으로 출력 강제, category는 **7종 enum**으로 제약.
-- LLM 실패·개수 불일치 시 **룰 baseline fallback** → 키가 없어도 동작.
-- 모든 출력은 `validate.ts` 단일 관문 통과: 7종 밖 카테고리 제거, 근거 없는 USP 무효화, 음수 가격 차단 등.
+### 못 채운 필드 — 어떻게 시도했고 왜 못 채웠나 (지어내지 않음)
 
-### 조건부 OCR (근거 부족 상품 보강)
-고도몰 상세는 본문이 **이미지**라 텍스트 근거가 없습니다(USP/hashtags가 빈약). 이를 보강:
+| 필드 | 시도 → 공란 사유 |
+|---|---|
+| `lowest_price` | 네이버·에누리 2소스 조회했으나 **시장에 동일 구성이 없음**(브랜드 독점·복합세트) → 억지 매칭 대신 `null` |
+| `usp` | 상품명·태그·OCR까지 동원했으나 **근거 0** → `validate`가 환각으로 차단하고 비움 |
+| `consumer_price` `sales_price` | 가격 API 응답이 없는 일부 항목은 추측 없이 공란 |
+| `option2` | 옵션 축이 하나뿐인 상품은 `option2`가 본질적으로 없음 |
 
-- **트리거**: `셀러태그 없음 AND 본문텍스트 없음`(근거 부족)일 때만 → 네이버(셀러태그 보유)는 **스킵**(비용 0).
-- 상세 설명 이미지(`_DC` composite)를 **세로 스트립으로 분할 → gpt-4o-mini 비전 OCR → 결합**.
-  - ⚠️ 통짜 OCR은 다운스케일로 환각(유아 사이즈 `80/90/100/110` → `S/M/L`)이 생김 → **스트립 분할 + 리사이즈**로 정확도 확보.
-  - 토큰(TPM) 보호: 동시성 제한 + 512px 리사이즈 + 429 백오프 재시도.
-- 결과 detailText로 USP/hashtags를 **실제 소재·특징 기반**으로 생성하고, provenance에 `상세이미지OCR`로 정직 표기.
-
-```bash
-# OCR은 opt-in (평소엔 OFF → 빠름)
-npm run crawl "https://m.happylandmall.com/" 20 ocr
-```
-
-### lowest_price 실조회 (가산점) — 오탐 방지 우선
-"시장 최저가"는 **틀린 값을 채우느니 `null`** 이라는 원칙으로 구현. 동일 상품 식별이 핵심이라 **3층 매칭**:
-
-- **2개 소스 병합**: ① 네이버쇼핑 OpenAPI(`syncNvMid` 정확매칭·빠름, 단 쿠팡 미포함) + ② 에누리 가격비교(쿠팡·11번가·G마켓 등 오픈마켓 포함, 브라우저 렌더). 둘 중 **더 낮은 값**.
-- **3층 매칭(오탐 차단)**: `pid==mid` 정확일치 또는 **모델코드 일치**는 결정적 확정(LLM 생략) → 나머지 휴리스틱 후보(브랜드+토큰+수량/용량+묶음 단위 통과)만 **LLM이 동일상품 최종 검수**. 통과 후보 없으면 `null`.
-- **단위 오탐 가드**: 가격 sanity(0.3~3배), `6종≠7종`·`3개≠11개`·`1+1(2개)≠단품` 등 수량/묶음 불일치 차단. mid가 같아도 세트 vs 개당이면 제외.
-- **판매가가 시장 최저면** 그 값을 최저가로 채우고 **타몰 최저도 함께 기록**(투명). `provenance`에 채움 경로(`pid==mid`/`모델코드확정`/`LLM확인`)를 정직 표기.
-
-```bash
-# 가산점: 시장 최저가 실조회
-#   네이버쇼핑은 .env의 NAVER_CLIENT_ID/SECRET만 있으면 자동 조회
-#   에누리(쿠팡 포함)는 인자 enuri로 opt-in (OPENAI_API_KEY 있어야 비-mid 후보 LLM 검수)
-npm run crawl "<store-url>" 20 enuri
-```
+> **자가복구(self-heal)**: 결정적 추출이 핵심 필드(이름·정가)를 비우면 원본을 LLM이 복구하되 **원본에 실재하는 값만**(grounded) → `ai-recovery`로 표기. 평소엔 호출 0인 안전망입니다.
 
 ---
 
-## 7. 정제 품질 & 엣지케이스
+## 부록 A. 설계 원칙 · 아키텍처
 
-자세한 수치·사례는 **`EDGE_CASES.md`** 참조. 요약:
+### 핵심 설계 원칙
 
-- **필드별 채움률 수치화** + 실패 건수 + AI fallback 횟수 (`output/*.quality.json` 자동 생성).
-- 옵션 엣지케이스: 추가금 반영, 노이즈(`★특가★`·이모지·`[필수]`) 제거, 1~3축/SIMPLE형/단일상품/품절.
-- 구조적 한계: 큐닷 `option1/2` 2칸 vs 소스 최대 3축 → 3축은 `option2`에 결합(소수).
-- 검증 관문이 잡아낸 것: USP 환각 차단, enum 밖 분류 제거, 근거 없는 다중분류 축소, 가격 이상 무효화.
+- **결정적 추출** — 내부 JSON API/구조화 데이터에서. 화면 셀렉터는 최후 수단.
+- **룰 우선, LLM은 어려운 20%만** — 정형은 코드, 비정형 분류·요약만 LLM.
+- **AI 출력을 신뢰하지 않는다** — 모든 LLM 출력은 `validate.ts` 단일 관문 통과.
+- **지어내지 않는다** — 못 얻는 값은 공란(null) + 사유. 추측 금지.
+- **크롤링 매너** — 딜레이 유지, 인증은 본인 세션 재사용.
 
----
-
-## 8. 회고 (고민·트레이드오프·해결 못한 것)
-
-전문은 **`REFLECTION.md`**. 핵심만:
-
-1. **봇 차단 — "뚫는 기술"보다 "리스크를 의식한 정공법".**
-   curl/직접 fetch는 429, Playwright 기본도 캡차/로그인 벽. 프록시·캡차솔버 대신 **사용자 1회 로그인 세션을 persistent로 재사용**(합법·안정).
-2. **결정적 추출 — 화면 파싱 대신 내부 JSON API.**
-   네이버는 `/i/v2/...` 내부 API, 고도몰은 카드 `data-*` 속성. 구조 변경 취약성을 줄이고 정형 데이터 확보.
-3. **어댑터 패턴 — "다른 링크도 작동" 요구 충족.**
-   네이버 2종은 prefix 차이만으로 하나의 어댑터. 고도몰은 도메인이 아닌 **플랫폼**을 감지해 일반화.
-4. **성능 — 목록 우선 + 가격 배치 + 호출 최소화.** 딜레이는 줄이지 않고 "호출 횟수 감소"로 속도 확보.
-5. **AI — 룰 우선·검증·fallback.** 초기엔 환각 가드가 흩어져 거짓 provenance("categoryPath 기반"인데 실제 null)를 표기한 실수 → **validate 단일 관문 + `basis` 정직 기록**으로 수정.
-6. **★ "상세 본문 텍스트 추출"의 환상 — 그리고 OCR을 향한 세 번의 반전.**
-   - 네이버 상세는 거의 이미지, 별도 contents API로 긁어도 SEO 키워드뿐 → "본문 추출 성공"이라 **과장 표기했다가 실데이터 검증 후 정정**.
-   - happyland OCR도 "텍스트 없는 상품 사진"이라 **"도입 안 함"으로 단정했는데, 사실 엉뚱한 이미지를 본 것**이었음. 실제 상세 composite(`_DC.jpg`)엔 소재·사이즈·설명이 가득.
-   - → 같은 실수(일부만 보고 과일반화)를 **세 번** 반복하고 매번 실데이터로 정정. **"검증했다는 말 자체도 검증 대상"** 이라는 메타 교훈.
-   - 최종적으로 OCR을 **조건부·스트립분할·정직 provenance**로 구현.
-
-**해결 못한 것 / 더 시간이 있었다면**: 쿠팡 **직접** 조회(현재는 Akamai·파트너스 키 요건으로 **에누리 경유**), 3축 옵션의 완전한 표현, OCR 속도 최적화(멀티이미지 단일호출), 증분 재크롤.
-
----
-
-## 9. 보안 (제출 시 반드시 확인)
-
-`.gitignore`에 등록되어 **커밋되지 않음** — 제출 repo에 개인정보가 들어가지 않게 확인:
-- `naver-session/` (로그인 쿠키), `.env` (API 키), `*.log`, 개인 전략 문서
-
----
-
-## 10. 프로젝트 구조
+### 아키텍처
 
 ```
-src/
-├─ main.ts                  # 파이프라인 엔트리 (URL → 크롤 → 정규화 → AI → 검증 → 출력)
-├─ crawler/browser.ts       # persistent 인증 세션 + 내부 API 호출
-├─ adapters/
-│  ├─ types.ts              # StoreAdapter 인터페이스 / RawProduct
-│  ├─ naver.ts              # 네이버 스마트스토어·브랜드스토어
-│  └─ godomall.ts           # 고도몰 범용 (happyland 등)
-├─ normalize/
-│  ├─ mapper.ts             # RawProduct → 큐닷 필드 + provenance
-│  ├─ validate.ts           # 환각 차단 단일 관문
-│  ├─ schema.ts             # 큐닷 스키마 / 7종 카테고리 enum
-│  └─ quality.ts            # 정제 품질 리포트
-└─ ai/
-   ├─ provider.ts           # Enricher 인터페이스
-   ├─ rule.ts               # 룰 baseline (LLM 미연동 시)
-   ├─ openai.ts             # OpenAI structured output
-   └─ ocr.ts                # 조건부 상세이미지 OCR (sharp + 비전)
-
-docs/crawl-flow.html        # 크롤링→저장 흐름 시각화 (+ 실제 샘플)
-RECON_NOTES.md              # 정찰 기록 (엔드포인트·필드 매핑)
-EDGE_CASES.md               # 엣지케이스 카탈로그 + 품질 수치
-REFLECTION.md               # 회고 원천 자료
+URL → [crawler] 통신 → [adapters] 스토어별 수집 → [normalize] 매핑·검증 → [ai] 분류·요약 → JSON
+                       단방향 의존 · 상품 단위 에러 격리(1개 실패해도 계속)
 ```
 
-## 기술 스택
-TypeScript(tsx) · Playwright + playwright-extra(stealth) · cheerio · OpenAI gpt-4o-mini(structured output + vision) · sharp
+- **어댑터 패턴**: 스토어별 수집기는 `StoreAdapter` 구현 → **새 몰 = 어댑터 1개.**
+- **AI 추상화(`Enricher`)**: 룰/OpenAI 교체 가능, 키 없으면 룰 baseline 자동 강등.
+- **환각 차단 단일 관문(`validate.ts`)**: provider 경로 무관하게 최종 산출물 필수 통과.
+
+| 스토어 | 어댑터 | 방식 |
+|---|---|---|
+| 네이버 스마트·브랜드스토어 | `NaverStoreAdapter` (prefix 차이만) | 인증 세션 + 내부 JSON API |
+| 고도몰 공식몰 (happyland 등) | `GodomallAdapter` | 순수 HTTP fetch + cheerio (브라우저 ✕) |
+| 그 외 미지원 | — | 런타임 검증 후 **명확한 에러로 graceful 실패** |
+
+> `GodomallAdapter`는 도메인이 아니라 **고도몰 플랫폼 자체**를 감지 → 다른 고도몰도 자동 동작.
+
+---
+
+## 부록 B. AI 활용 상세
+
+**룰 우선 + 환각 차단** — LLM은 category/usp/hashtags/옵션만. structured output(json_schema)로 출력 강제, category는 7종 enum 제약. 실패 시 룰 fallback. 모든 출력은 `validate.ts` 통과(7종 밖 제거·근거 없는 USP 무효화·가격 이상 차단).
+
+<details>
+<summary><b>🔍 조건부 OCR — 근거 부족 상품 보강</b></summary>
+
+고도몰 상세는 본문이 이미지라 텍스트 근거가 빈약. `셀러태그·본문 없음`일 때만 상세 composite(`_DC`)를 **세로 스트립 분할 → gpt-4o-mini 비전 → 결합**(통짜 OCR은 다운스케일 환각: 유아 사이즈 `80~110`→`S/M/L`). 네이버는 셀러태그 보유 → 스킵(비용 0). `npm run crawl <url> <n> ocr`
+</details>
+
+<details>
+<summary><b>💰 lowest_price — "우리 외 타몰의 최저가" (자사몰 제외 · 오탐 방지)</b></summary>
+
+정의: lowest_price = *우리 판매가 말고 다른 곳에서 더 싸게 파나*. 그래서 **자사몰은 후보에서 제외**(자사 가격은 이미 `sales_price`).
+
+- **2소스**: 네이버쇼핑 OpenAPI(`syncNvMid` 정확매칭) + 에누리(쿠팡 포함 가격비교) → 더 낮은 값.
+- **자사 제외**: `pid==mid`(자사 카탈로그)·네이버 스토어 링크 = 자사 → 타몰만 본다.
+- **오탐 차단**: 가격 sanity·브랜드·토큰·수량/묶음 가드 → 모델코드 일치는 확정, 나머지는 **LLM이 동일상품 검수**(복합세트 구성 차이까지). 통과 없으면 `null + 사유`.
+- **출처 기록**: `mall`(옥션·G마켓…)·`fetchedAt`·매칭 경로를 정직 표기. 옵션별 판매가 다르면 SKU별 적용.
+
+`npm run crawl <url> <n> enuri`
+</details>
