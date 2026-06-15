@@ -1,0 +1,166 @@
+{
+  "store": "happylandmall",
+  "updatedAt": "2026-06-15T16:42:38.306Z",
+  "products": {
+    "1000000583": {
+      "consumerPrice": 36000,
+      "salePrice": 36000
+    },
+    "1000000584": {
+      "consumerPrice": 31200,
+      "salePrice": 31200
+    },
+    "1000000585": {
+      "consumerPrice": 36000,
+      "salePrice": 36000
+    },
+    "1000000586": {
+      "consumerPrice": 55200,
+      "salePrice": 55200
+    },
+    "1000000587": {
+      "consumerPrice": 31200,
+      "salePrice": 31200
+    },
+    "1000000589": {
+      "consumerPrice": 45000,
+      "salePrice": 45000
+    },
+    "1000000591": {
+      "consumerPrice": 55000,
+      "salePrice": 55000
+    },
+    "1000000592": {
+      "consumerPrice": 65000,
+      "salePrice": 65000
+    },
+    "1000000593": {
+      "consumerPrice": 79000,
+      "salePrice": 79000
+    },
+    "1000000594": {
+      "consumerPrice": 25600,
+      "salePrice": 25600
+    },
+    "1000000595": {
+      "consumerPrice": 21600,
+      "salePrice": 21600
+    },
+    "1000000596": {
+      "consumerPrice": 23200,
+      "salePrice": 23200
+    },
+    "1000000597": {
+      "consumerPrice": 25600,
+      "salePrice": 25600
+    },
+    "1000000598": {
+      "consumerPrice": 28000,
+      "salePrice": 28000
+    },
+    "1000000599": {
+      "consumerPrice": 23200,
+      "salePrice": 23200
+    },
+    "1000000600": {
+      "consumerPrice": 28000,
+      "salePrice": 28000
+    },
+    "1000000601": {
+      "consumerPrice": 20000,
+      "salePrice": 20000
+    },
+    "1000000602": {
+      "consumerPrice": 20000,
+      "salePrice": 20000
+    },
+    "1000000603": {
+      "consumerPrice": 21600,
+      "salePrice": 21600
+    },
+    "1000000604": {
+      "consumerPrice": 21600,
+      "salePrice": 21600
+    },
+    "1000000605": {
+      "consumerPrice": 23200,
+      "salePrice": 23200
+    },
+    "1000000606": {
+      "consumerPrice": 23200,
+      "salePrice": 23200
+    },
+    "1000000607": {
+      "consumerPrice": 69000,
+      "salePrice": 69000
+    },
+    "1000000608": {
+      "consumerPrice": 65000,
+      "salePrice": 65000
+    },
+    "1000000609": {
+      "consumerPrice": 97300,
+      "salePrice": 97300
+    },
+    "1000000610": {
+      "consumerPrice": 109000,
+      "salePrice": 109000
+    },
+    "1000000611": {
+      "consumerPrice": 76300,
+      "salePrice": 76300
+    },
+    "1000000620": {
+      "consumerPrice": 109000,
+      "salePrice": 109000
+    },
+    "1000000621": {
+      "consumerPrice": 129000,
+      "salePrice": 129000
+    },
+    "1000000622": {
+      "consumerPrice": 72000,
+      "salePrice": 72000
+    },
+    "1000000623": {
+      "consumerPrice": 55000,
+      "salePrice": 55000
+    },
+    "1000000626": {
+      "consumerPrice": 97300,
+      "salePrice": 97300
+    },
+    "1000000628": {
+      "consumerPrice": 44000,
+      "salePrice": 44000
+    },
+    "1000000636": {
+      "consumerPrice": 59000,
+      "salePrice": 59000
+    },
+    "1000000637": {
+      "consumerPrice": 49000,
+      "salePrice": 49000
+    },
+    "1000000638": {
+      "consumerPrice": 65000,
+      "salePrice": 65000
+    },
+    "1000000639": {
+      "consumerPrice": 23200,
+      "salePrice": 23200
+    },
+    "1000000640": {
+      "consumerPrice": 21600,
+      "salePrice": 21600
+    },
+    "1000000641": {
+      "consumerPrice": 28000,
+      "salePrice": 28000
+    },
+    "1000000642": {
+      "consumerPrice": 69000,
+      "salePrice": 69000
+    }
+  }
+}

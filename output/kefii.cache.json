@@ -1,6 +1,6 @@
 {
   "store": "kefii",
-  "updatedAt": "2026-06-12T19:14:16.319Z",
+  "updatedAt": "2026-06-15T15:57:04.843Z",
   "products": {
     "4971375678": {
       "consumerPrice": 32700,
@@ -10,80 +10,64 @@
       "consumerPrice": 80000,
       "salePrice": 42300
     },
-    "10439635447": {
-      "consumerPrice": 39800,
-      "salePrice": 25300
-    },
-    "5924505980": {
-      "consumerPrice": 32000,
-      "salePrice": 18900
-    },
-    "5548590499": {
-      "consumerPrice": 40000,
-      "salePrice": 24900
-    },
-    "9285518735": {
-      "consumerPrice": 344000,
-      "salePrice": 122500
-    },
-    "8102605610": {
-      "consumerPrice": 53000,
-      "salePrice": 32800
-    },
-    "11314540393": {
-      "consumerPrice": 45000,
-      "salePrice": 23800
-    },
-    "9887820340": {
-      "consumerPrice": 26000,
-      "salePrice": 12600
-    },
-    "8102632738": {
-      "consumerPrice": 137000,
-      "salePrice": 50900
-    },
-    "13426616068": {
-      "consumerPrice": 22500,
-      "salePrice": 13900
-    },
     "12731987783": {
       "consumerPrice": 31000,
       "salePrice": 15900
+    },
+    "10439635447": {
+      "consumerPrice": 39800,
+      "salePrice": 25300
     },
     "11288892724": {
       "consumerPrice": 18000,
       "salePrice": 13900
     },
-    "10097522911": {
-      "consumerPrice": 45000,
-      "salePrice": 25500
+    "9887820340": {
+      "consumerPrice": 26000,
+      "salePrice": 12600
     },
-    "9887814544": {
-      "consumerPrice": 154000,
-      "salePrice": 75600
+    "5548590499": {
+      "consumerPrice": 40000,
+      "salePrice": 24900
+    },
+    "11314540393": {
+      "consumerPrice": 45000,
+      "salePrice": 23800
+    },
+    "13627263728": {
+      "consumerPrice": 18000,
+      "salePrice": 13900
     },
     "8855687274": {
       "consumerPrice": 40000,
       "salePrice": 26000
     },
-    "8642720807": {
-      "consumerPrice": 63000,
-      "salePrice": 31800
+    "8702520840": {
+      "consumerPrice": 85000,
+      "salePrice": 32900
+    },
+    "8102632738": {
+      "consumerPrice": 137000,
+      "salePrice": 50900
+    },
+    "8102605610": {
+      "consumerPrice": 53000,
+      "salePrice": 32800
     },
     "7785599798": {
       "consumerPrice": 30000,
       "salePrice": 16900
     },
-    "4909112381": {
-      "consumerPrice": 15000,
-      "salePrice": 10900
-    },
     "4909109662": {
       "consumerPrice": 15000,
       "salePrice": 10900
     },
-    "13627263728": {
-      "consumerPrice": 18000,
+    "4909109106": {
+      "consumerPrice": 15000,
+      "salePrice": 10900
+    },
+    "13426616068": {
+      "consumerPrice": 22500,
       "salePrice": 13900
     },
     "12492711467": {
@@ -134,17 +118,29 @@
       "consumerPrice": 43900,
       "salePrice": 28900
     },
+    "10097522911": {
+      "consumerPrice": 45000,
+      "salePrice": 25500
+    },
     "10061902651": {
       "consumerPrice": 80000,
       "salePrice": 49900
+    },
+    "9887814544": {
+      "consumerPrice": 154000,
+      "salePrice": 75600
     },
     "9285543380": {
       "consumerPrice": 63900,
       "salePrice": 40700
     },
-    "8702520840": {
-      "consumerPrice": 85000,
-      "salePrice": 32900
+    "9285518735": {
+      "consumerPrice": 344000,
+      "salePrice": 122500
+    },
+    "8642720807": {
+      "consumerPrice": 63000,
+      "salePrice": 31800
     },
     "8472525871": {
       "consumerPrice": 85000,
@@ -182,6 +178,10 @@
       "consumerPrice": 22500,
       "salePrice": 13900
     },
+    "5924505980": {
+      "consumerPrice": 32000,
+      "salePrice": 18900
+    },
     "4996868077": {
       "consumerPrice": 50000,
       "salePrice": 24900
@@ -190,11 +190,11 @@
       "consumerPrice": 15000,
       "salePrice": 10900
     },
-    "4909110310": {
+    "4909112381": {
       "consumerPrice": 15000,
       "salePrice": 10900
     },
-    "4909109106": {
+    "4909110310": {
       "consumerPrice": 15000,
       "salePrice": 10900
     },

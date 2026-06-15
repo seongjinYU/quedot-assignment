@@ -1,106 +1,114 @@
 {
   "store": "happylandmall",
-  "totalProducts": 2,
-  "totalRows": 12,
+  "totalProducts": 40,
+  "totalRows": 202,
   "fillRate": {
     "brand_name": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "deterministic": 12
+        "deterministic": 202
       }
     },
     "name": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "deterministic": 12
+        "deterministic": 202
       }
     },
     "image_url": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "deterministic": 12
+        "deterministic": 202
       }
     },
     "option1": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "ai": 12
+        "deterministic": 202
       }
     },
     "option2": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "ai": 12
+        "deterministic": 202
       }
     },
     "consumer_price": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "deterministic": 12
+        "deterministic": 202
       }
     },
     "sales_price": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "deterministic": 12
+        "deterministic": 202
       }
     },
     "lowest_price": {
-      "filled": 0,
-      "rate": "0.0%",
+      "filled": 202,
+      "rate": "100.0%",
       "method": {
-        "empty": 12
+        "crawled": 202
       }
     },
     "discount_rate": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "calculated": 12
+        "calculated": 202
       }
     },
     "hashtags": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "ai": 12
+        "ai": 202
       }
     },
     "usp": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "ai": 12
+        "ai": 202
       }
     },
     "category_group": {
-      "filled": 12,
+      "filled": 202,
       "rate": "100.0%",
       "method": {
-        "ai": 12
+        "ai": 202
       }
     }
   },
-  "emptyReasons": {
-    "lowest_price: 가산점 미구현. 매칭키 syncNvMid=N/A 확보 → 네이버쇼핑 실조회로 확장 가능": 12
-  },
+  "emptyReasons": {},
   "validationIssues": {
     "error": 0,
-    "warn": 8,
+    "warn": 51,
     "byField": {
-      "option1": 4,
-      "option2": 4
+      "option1": 51
+    },
+    "byType": {
+      "option_cleanup": 51
     }
   },
+  "options": {
+    "soldOut": 16,
+    "singleProduct": 0,
+    "axis1": 0,
+    "axis2": 202,
+    "axis3plus": 0
+  },
   "aiUsage": {
-    "enriched": 12,
+    "enriched": 202,
     "ruleFallback": 0
-  }
+  },
+  "failures": []
 }

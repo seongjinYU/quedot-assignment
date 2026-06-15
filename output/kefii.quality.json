@@ -56,11 +56,11 @@
       }
     },
     "lowest_price": {
-      "filled": 324,
-      "rate": "84.4%",
+      "filled": 50,
+      "rate": "13.0%",
       "method": {
-        "crawled": 324,
-        "empty": 60
+        "empty": 334,
+        "crawled": 50
       }
     },
     "discount_rate": {
@@ -94,7 +94,8 @@
   },
   "emptyReasons": {
     "option2: 단일 옵션 축": 34,
-    "lowest_price: 동일상품 미확정(mid 불일치·LLM 검수 통과 후보 없음·오탐 방지)": 60
+    "lowest_price: 타몰 동일상품 없음(자사몰 독점 추정 — 비교 대상 없음)": 238,
+    "lowest_price: 동일상품 미확정(타몰 후보 없음·오탐 방지)": 96
   },
   "validationIssues": {
     "error": 0,

@@ -57,11 +57,11 @@
       }
     },
     "lowest_price": {
-      "filled": 82,
-      "rate": "79.6%",
+      "filled": 66,
+      "rate": "64.1%",
       "method": {
-        "crawled": 82,
-        "empty": 21
+        "crawled": 66,
+        "empty": 37
       }
     },
     "discount_rate": {
@@ -79,11 +79,10 @@
       }
     },
     "usp": {
-      "filled": 102,
-      "rate": "99.0%",
+      "filled": 103,
+      "rate": "100.0%",
       "method": {
-        "ai": 102,
-        "empty": 1
+        "ai": 103
       }
     },
     "category_group": {
@@ -98,8 +97,8 @@
     "option1: 옵션 없음(단일상품) 또는 주관식 입력형 제외": 47,
     "option2: 단일 옵션 축": 29,
     "option2: 옵션 없음": 47,
-    "lowest_price: 동일상품 미확정(mid 불일치·LLM 검수 통과 후보 없음·오탐 방지)": 21,
-    "usp: USP 없음(근거 부족)": 1
+    "lowest_price: 타몰 동일상품 없음(자사몰 독점 추정 — 비교 대상 없음)": 34,
+    "lowest_price: 동일상품 미확정(타몰 후보 없음·오탐 방지)": 3
   },
   "validationIssues": {
     "error": 0,
