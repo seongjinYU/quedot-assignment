@@ -241,8 +241,10 @@ export async function resolveLowestPrices(
     const fetchedAt = new Date().toISOString();
     const candidates: Candidate[] = [];
 
-    // ① 네이버 (naverMid 정확매칭 활용 — 키 있고 매칭키 있을 때)
-    if (naverClient && naverMid) {
+    // ① 네이버 — 이름+브랜드 쿼리로 검색(mid 불필요). mid는 있으면 pid 정확매칭 '확정 신호'로만 쓴다.
+    //   비-mid 상품(비네이버 공식몰 등)도 모델코드 일치(확정) 또는 brand+토큰+가격 가드 + LLM판정으로 동일상품 확인.
+    //   (이전엔 `&& naverMid` 조건이 mid 없는 상품의 네이버 검색을 통째로 막아 타몰 최저가를 놓쳤음 — 버그 수정)
+    if (naverClient) {
       try {
         // 긴 쿼리(구체적)는 자기 스토어 listing만 좁게 잡히기 쉽다(mid는 맞지만 타몰 최저가를 놓침).
         //   → 결과가 단일 몰뿐(타몰 후보 부재)일 때만 짧은 쿼리로 보강해 옥션·G마켓 등을 더 모은다.

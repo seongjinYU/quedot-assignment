@@ -30,6 +30,7 @@ import {
 import type { StoreAdapter, RawProduct } from './adapters/types.js';
 import type { NormalizedProduct } from './normalize/schema.js';
 import type { Enricher } from './ai/provider.js';
+import { RunReporter } from './normalize/runReporter.js';
 
 const storeUrl = process.argv[2] ?? 'https://smartstore.naver.com/phytonutri';
 const limit = Number(process.argv[3] ?? '1');
@@ -39,6 +40,9 @@ const ocrRequested = process.argv[4] === 'ocr' || process.env.ENABLE_OCR === 'tr
 const incremental = process.argv.includes('incremental') || process.env.INCREMENTAL === 'true';
 
 async function main() {
+  // 실행 기록 포착(opt-in: RUN_LOG). 콘솔 가로채기를 가장 먼저 켜 설정 로그부터 잡는다.
+  const reporter = new RunReporter();
+  reporter.start(storeUrl);
   const session = new BrowserSession({ headless: false, rateLimitMs: 1500 });
   // OpenAI 키 있으면 LLM, 없으면 룰 baseline (자동 강등)
   const enricher: Enricher = process.env.OPENAI_API_KEY
@@ -71,14 +75,16 @@ async function main() {
     if (!adapter) throw new Error(`지원 어댑터 없음: ${storeUrl}`);
     console.log(`어댑터: ${adapter.name} | 대상: ${storeUrl} | limit: ${limit}`);
 
-    // 출력 경로 — 증분 diff(이전 결과/캐시 로드)를 위해 미리 산출
-    const outDir = path.resolve('output');
+    // 출력 경로 — 증분 diff(이전 결과/캐시 로드)를 위해 미리 산출.
+    //   OUTPUT_DIR 로 덮어쓸 수 있다(라이브 데모는 output/.live 로 분리 → 전수 데이터 보호).
+    const outDir = path.resolve(process.env.OUTPUT_DIR ?? 'output');
     fs.mkdirSync(outDir, { recursive: true });
     const storeName =
       storeUrl.match(/naver\.com\/([^/?#]+)/)?.[1] ??
       new URL(storeUrl).hostname.replace(/^m\./, '').split('.')[0]; // happylandmall 등
     const outPath = path.join(outDir, `${storeName}.json`);
     const cachePath = path.join(outDir, `${storeName}.cache.json`);
+    reporter.setStore(storeName);
 
     // 브라우저가 필요한 어댑터만 세션 오픈 (happyland는 순수 HTTP → 스킵)
     if (adapter.needsBrowser !== false) {
@@ -121,6 +127,7 @@ async function main() {
     }
 
     // 1-pass: 전 상품 수집(fetch + 가격병합 + OCR + 자가복구). 매핑은 사이트 성격 파악 후로 미룬다.
+    reporter.mark('extract', `상품별 결정적 추출 시작 (${freshIds.length}건)`);
     const raws: RawProduct[] = [];
     const failures: { productNo: string; reason: string }[] = [];
     for (const id of freshIds) {
@@ -221,6 +228,7 @@ async function main() {
         console.log(
           `\n💰 최저가 실조회: ${lp.attempted}상품 → 채움 ${lp.resolved}(네이버 ${lp.bySource.naver}/에누리 ${lp.bySource.enuri}/판매처 ${lp.bySource.store}) · 미발견 ${lp.nullCount}`,
         );
+        reporter.meta({ lowestResolved: lp.resolved, lowestNull: lp.nullCount });
       } finally {
         await enuriClient?.close();
       }
@@ -244,10 +252,12 @@ async function main() {
     } else {
       results = rawRows;
     }
+    reporter.mark('validate', '검증 단일 관문 (validate.ts) — 환각 차단');
     const allIssues: ValidationIssue[][] = results.map((np) => validate(np));
 
     fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
     const productCount = new Set(results.map((r) => r.meta.productNo)).size;
+    reporter.meta({ products: productCount, sku: results.length, failures: failures.length });
     // 증분 모드면 재사용 건수를 함께 표기(실패 수가 fresh 기준임을 명확히 — 통계 해석 모호 방지)
     const incNote = incremental && incPlan ? ` · 재사용 ${incPlan.reuse.length}상품(이번 크롤 ${freshIds.length})` : '';
     console.log(
@@ -264,6 +274,7 @@ async function main() {
     console.log(`\n✓ 품질 리포트: ${qPath}`);
   } finally {
     await session.close();
+    reporter.finish(path.resolve(process.env.OUTPUT_DIR ?? 'output'));
   }
 }
 

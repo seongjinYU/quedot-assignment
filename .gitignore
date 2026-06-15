@@ -3,6 +3,10 @@ naver-session/
 .env
 .env.local
 *.log
+.DS_Store
+
+# 소개 영상 원본 자산 (대용량 661MB — 제출 repo 제외, PPT/PDF로 재활용)
+video/
 
 # 도구 내부 상태 (제출 무관)
 .bkit/
@@ -31,3 +35,6 @@ coupang-state.json
 
 # 탐침/디버그 스크립트 + 외부 페이지 덤프 (제출 제외) — 루트 한정(web/scripts 는 추적)
 /scripts/
+
+# 라이브 데모 임시 출력(전수 데이터 보호)
+output/.live/

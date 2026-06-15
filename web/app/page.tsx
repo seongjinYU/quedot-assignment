@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getIndex } from "@/lib/data";
 import { StoreCard } from "@/components/StoreCard";
 
@@ -32,6 +33,14 @@ export default function HomePage() {
           추적되어 — 원본 그대로인지, AI가 생성·복구했는지, 정직하게 비웠는지를
           한눈에 검수합니다.
         </p>
+
+        <Link
+          href="/demo"
+          className="rise mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 font-mono text-[12px] tracking-wide text-paper transition-opacity hover:opacity-85"
+          style={{ animationDelay: "150ms" }}
+        >
+          ▶ 파이프라인 데모 보기
+        </Link>
 
         <div
           className="rule-wipe mt-8 h-px w-full bg-ink/80"

@@ -16,6 +16,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..', '..'); // quedot-assignment/
 const outputDir = join(repoRoot, 'output');
 const dataDir = resolve(here, '..', 'data'); // web/data/
+const publicRunsDir = resolve(here, '..', 'public', 'runs'); // web/public/runs/ (클라이언트 fetch용)
 
 if (!existsSync(outputDir)) {
   console.error(`[sync-data] output/ 를 찾을 수 없습니다: ${outputDir}`);
@@ -24,6 +25,8 @@ if (!existsSync(outputDir)) {
 
 rmSync(dataDir, { recursive: true, force: true });
 mkdirSync(dataDir, { recursive: true });
+rmSync(publicRunsDir, { recursive: true, force: true });
+mkdirSync(publicRunsDir, { recursive: true });
 
 const all = readdirSync(outputDir).filter((f) => f.endsWith('.json'));
 // 스토어 결과 파일만: 사이드카(.quality / .cache 등) 제외
@@ -32,7 +35,8 @@ const found = all
     (f) =>
       !f.endsWith('.quality.json') &&
       !f.endsWith('.cache.json') &&
-      !f.endsWith('.state.json')
+      !f.endsWith('.state.json') &&
+      !f.endsWith('.run.json')
   )
   .map((f) => f.replace(/\.json$/, ''));
 
@@ -65,6 +69,16 @@ for (const slug of stores) {
     writeFileSync(join(dataDir, `${slug}.quality.json`), qRaw);
   }
 
+  // 실행 기록(run-log) — /demo 파이프라인 재생용. 클라이언트가 fetch하도록 public/runs/ 에도 복사.
+  const runPath = join(outputDir, `${slug}.run.json`);
+  let hasRun = false;
+  if (existsSync(runPath)) {
+    const runRaw = readFileSync(runPath, 'utf8');
+    writeFileSync(join(dataDir, `${slug}.run.json`), runRaw);
+    writeFileSync(join(publicRunsDir, `${slug}.run.json`), runRaw);
+    hasRun = true;
+  }
+
   const sampleImages = [];
   for (const p of products) {
     const u = p?.data?.image_url;
@@ -90,6 +104,7 @@ for (const slug of stores) {
     recoveredRows,
     crawledAt: products?.[0]?.meta?.crawledAt ?? null,
     sampleImages,
+    hasRun,
   });
 }
 

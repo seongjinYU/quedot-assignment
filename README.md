@@ -15,11 +15,11 @@ URL을 넣으면 그 몰의 전 상품을 순회 수집하고, AI로 분석·구
 
 ```mermaid
 flowchart LR
-    A["🔗 URL 입력<br/>네이버 · 고도몰<br/>(어댑터로 확장)"]:::entry --> B["🗂️ 전 상품<br/>목록 수집"]:::crawl
-    B --> C["⛏️ 결정적 크롤링<br/>이름·가격·옵션·이미지<br/>근거 부족 시 OCR 보강"]:::crawl
-    C --> D["🤖 AI 분석·구조화<br/>카테고리 · USP<br/>해시태그 · 옵션"]:::ai
-    D --> E["💰 시장 최저가 실조회<br/>네이버 + 에누리<br/>오탐 방지 (가산점)"]:::low
-    E --> F["📋 큐닷 제안서 JSON<br/>+ 검수 뷰어"]:::out
+    A["URL 입력<br/>네이버 · 고도몰<br/>(어댑터로 확장)"]:::entry --> B["전 상품<br/>목록 수집"]:::crawl
+    B --> C["결정적 크롤링<br/>이름·가격·옵션·이미지<br/>근거 부족 시 OCR 보강"]:::crawl
+    C --> D["AI 분석·구조화<br/>카테고리 · USP<br/>해시태그 · 옵션"]:::ai
+    D --> E["시장 최저가 실조회<br/>네이버 + 에누리<br/>오탐 방지 (가산점)"]:::low
+    E --> F["큐닷 제안서 JSON<br/>+ 검수 뷰어"]:::out
 
     classDef entry fill:#EAF1FF,stroke:#2D6BFF,color:#1B47C2,stroke-width:2px;
     classDef crawl fill:#E7F6EE,stroke:#16A34A,color:#0F7A37,stroke-width:1.5px;
@@ -29,36 +29,36 @@ flowchart LR
 ```
 
 <details>
-<summary><b>🔍 자세한 동작 흐름 보기</b> (조건부 분기 · 검증 관문 포함)</summary>
+<summary><b>자세한 동작 흐름 보기</b> (조건부 분기 · 검증 관문 포함)</summary>
 
 ```mermaid
 flowchart TD
-    URL["🔗 URL 입력"]:::entry --> ADP{"어댑터 매칭"}:::dec
+    URL["URL 입력"]:::entry --> ADP{"어댑터 매칭"}:::dec
     ADP -->|네이버| NV["NaverStoreAdapter<br/>인증 세션 + 내부 JSON API"]:::crawl
     ADP -->|고도몰| GD["GodomallAdapter<br/>순수 HTTP fetch"]:::crawl
-    ADP -->|그 외| ERR["❌ 명확한 에러<br/>(어댑터 추가하면 동작)"]:::opt
+    ADP -->|그 외| ERR["명확한 에러<br/>(어댑터 추가하면 동작)"]:::opt
 
-    NV --> LIST["📑 목록 전수 수집"]:::crawl
+    NV --> LIST["목록 전수 수집"]:::crawl
     GD --> LIST
-    LIST --> PRICE["💵 가격 배치 조회<br/>(개별 호출 회피)"]:::crawl
+    LIST --> PRICE["가격 배치 조회<br/>(개별 호출 회피)"]:::crawl
     PRICE --> INC{"증분 모드?"}:::dec
     INC -.신규·가격변경만.-> LOOP
-    INC -->|전수| LOOP["⛏️ 상품별 결정적 추출<br/>이름·가격·옵션·이미지"]:::crawl
+    INC -->|전수| LOOP["상품별 결정적 추출<br/>이름·가격·옵션·이미지"]:::crawl
 
     LOOP --> OCR{"근거 부족<br/>+ 상세이미지?"}:::dec
-    OCR -.opt-in.-> OCRY["🔤 조건부 OCR 보강"]:::opt
+    OCR -.opt-in.-> OCRY["조건부 OCR 보강"]:::opt
     OCR --> HEAL{"핵심필드<br/>누락?"}:::dec
     OCRY --> HEAL
-    HEAL -.안전망.-> HEALY["🔧 자가복구<br/>(ai-recovery)"]:::opt
-    HEAL --> CAT["🏷️ 사이트 카테고리 수집<br/>(AI 분류 컨텍스트)"]:::ai
+    HEAL -.안전망.-> HEALY["자가복구<br/>(ai-recovery)"]:::opt
+    HEAL --> CAT["사이트 카테고리 수집<br/>(AI 분류 컨텍스트)"]:::ai
     HEALY --> CAT
 
-    CAT --> AI["🤖 정규화 + AI 보강<br/>카테고리·USP·해시태그·3축 옵션"]:::ai
-    AI --> BUNDLE["🔗 묶음 가격 보정"]:::crawl
-    BUNDLE --> LOW["💰 최저가 실조회 (가산점)<br/>네이버 + 에누리 · 자사 제외<br/>오탐 시 null + 사유"]:::low
-    LOW --> VAL["🛡️ 검증 단일 관문<br/>validate.ts — 환각 차단"]:::gate
-    VAL --> OUT["📋 JSON + 품질 리포트"]:::out
-    OUT --> WEB["🖥️ 검수 뷰어 (web/)<br/>provenance 색코딩"]:::out
+    CAT --> AI["정규화 + AI 보강<br/>카테고리·USP·해시태그·3축 옵션"]:::ai
+    AI --> BUNDLE["묶음 가격 보정"]:::crawl
+    BUNDLE --> LOW["최저가 실조회 (가산점)<br/>네이버 + 에누리 · 자사 제외<br/>오탐 시 null + 사유"]:::low
+    LOW --> VAL["검증 단일 관문<br/>validate.ts — 환각 차단"]:::gate
+    VAL --> OUT["JSON + 품질 리포트"]:::out
+    OUT --> WEB["검수 뷰어 (web/)<br/>provenance 색코딩"]:::out
 
     classDef entry fill:#EAF1FF,stroke:#2D6BFF,color:#1B47C2,stroke-width:2px;
     classDef crawl fill:#E7F6EE,stroke:#16A34A,color:#0F7A37,stroke-width:1.5px;
