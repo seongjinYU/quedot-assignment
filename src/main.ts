@@ -34,8 +34,9 @@ import { RunReporter } from './normalize/runReporter.js';
 
 const storeUrl = process.argv[2] ?? 'https://smartstore.naver.com/phytonutri';
 const limit = Number(process.argv[3] ?? '1');
-// OCR 보강(조건부): `npm run crawl <url> <limit> ocr` 또는 ENABLE_OCR=true 일 때만
-const ocrRequested = process.argv[4] === 'ocr' || process.env.ENABLE_OCR === 'true';
+// OCR 보강: 기본 자동(근거 부족 상품의 상세이미지 → 텍스트). 자가복구처럼 '필요할 때만' 발화하는 안전망.
+//   발화 조건은 코드가 판단(셀러태그·본문 없음 + 상세이미지). 비용/속도로 끄려면 `noocr` 또는 ENABLE_OCR=false.
+const ocrDisabled = process.argv.includes('noocr') || process.env.ENABLE_OCR === 'false';
 // 증분 재크롤: `npm run crawl <url> <limit> incremental` 또는 INCREMENTAL=true — 신규/가격변경만 재크롤
 const incremental = process.argv.includes('incremental') || process.env.INCREMENTAL === 'true';
 
@@ -51,10 +52,9 @@ async function main() {
   console.log(`Enricher: ${enricher.kind}`);
   // 공유 OpenAI 클라이언트 (OCR · 자가복구가 함께 사용)
   const openaiClient = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
-  // OCR 보강기: 근거 부족(셀러태그·본문 없음) 상품의 상세 이미지에서 텍스트 추출
-  const ocr = ocrRequested && openaiClient ? new OcrReader(openaiClient) : null;
-  if (ocrRequested && !ocr) console.log('⚠️ OCR 요청됐으나 OPENAI_API_KEY 없음 → OCR 비활성');
-  console.log(`OCR: ${ocr ? 'ON (근거 부족 상품의 상세이미지 보강)' : 'OFF'}`);
+  // OCR 보강기: OpenAI 키가 있으면 자동 ON(자가복구처럼 상시 안전망). 실제 발화는 상품별 조건이 판단.
+  const ocr = openaiClient && !ocrDisabled ? new OcrReader(openaiClient) : null;
+  console.log(`OCR: ${ocr ? 'ON (자동 — 근거 부족 상품의 상세이미지 보강)' : ocrDisabled ? 'OFF (noocr)' : 'OFF (OPENAI_API_KEY 없음)'}`);
   // 자가복구: 결정적 추출이 핵심 필드를 비웠을 때 원본을 LLM에 넘겨 복구(상시 안전망 — 평소 호출 0).
   //   SELFHEAL_DEMO=name 으로 결정적값을 일부러 제거해 복구 경로를 재현(시연/검증용).
   const selfHealDemo = (process.env.SELFHEAL_DEMO ?? '').split(',').map((s) => s.trim()).filter(Boolean);
