@@ -2,7 +2,7 @@
 
 // 데모 단일 엔진 — 라이브(실제 크롤 SSE)와 재생(run.json)을 같은 상태 싱크로 흘린다.
 //  - 라이브: 로컬 /api/crawl SSE → 실제 크롤이 도는 대로 이벤트 수신.
-//  - 재생: run.json 이벤트를 인덱스 균등 페이싱(~22s)으로 흘림(배포 폴백).
+//  - 재생: run.json을 '단계별' 페이싱으로 흘림 — 단계마다 최소 노출 + 로그 캡(상품 수 무관 ~18s, 배포 폴백).
 // 두 경우 모두 {stage,line,level} 이벤트를 push() 해 로그·흐름도·카운터를 갱신한다.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -24,9 +24,24 @@ export interface EngineState {
   error: string | null;
 }
 
-const TARGET_MS = 22000;
-const MIN_INTERVAL = 45;
-const MAX_INTERVAL = 170;
+// 재생 페이싱 — '단계(stage)별' 균등 노출. 이전엔 이벤트 균등이라 로그 많은 단계(목록·추출)가
+//   상품 수에 비례해 길어지고 최저가·검증·출력은 끝에 0.1초씩 뭉쳤다 → 단계마다 고정 노출.
+//   결과적으로 총 재생 길이가 '상품 수'가 아니라 '단계 수'로 결정돼 일정하다(~18초).
+const STAGE_DWELL = 1500;        // 각 단계 최소 노출(ms) — 로그가 몇 줄이든 이 시간은 유지
+const INTRA_GAP = 55;            // 같은 단계 내 로그 줄 간격(ms)
+const STAGE_GAP = 360;           // 새 단계 진입 전 짧은 정지(노드 점등 인지용)
+const MAX_LINES_PER_STAGE = 12;  // 단계당 표시 로그 상한(초과분은 "… N줄 더" 1줄로 접음)
+const END_HOLD = 700;            // 마지막 단계 후 완료 표시까지 여유
+
+// 한 단계의 로그가 너무 많으면(추출·매핑 등 상품 수만큼) 앞·뒤만 보이고 가운데는 요약 한 줄로 접는다.
+function capSegment(evs: RunEvent[]): RunEvent[] {
+  if (evs.length <= MAX_LINES_PER_STAGE) return evs;
+  const head = evs.slice(0, MAX_LINES_PER_STAGE - 4);
+  const tail = evs.slice(-3);
+  const omitted = evs.length - head.length - tail.length;
+  const note: RunEvent = { ...head[head.length - 1], line: `   … (${omitted}줄 더 — 같은 단계 반복)`, level: 'mark' };
+  return [...head, note, ...tail];
+}
 
 const empty = (): EngineState => ({
   lines: [],
@@ -91,22 +106,43 @@ export function useDemoEngine() {
     }));
   }, []);
 
-  // 재생(run.json) — 인덱스 균등 페이싱
+  // 재생(run.json) — '단계별' 페이싱. 각 단계가 이벤트 수와 무관하게 최소 STAGE_DWELL 노출되고,
+  //   로그 많은 단계는 capSegment로 접어 총 길이가 상품 수와 무관하게 일정하다.
   const startReplay = useCallback(
     (run: RunLog) => {
       reset();
-      const events = run.events;
-      const n = events.length;
-      if (!n) return;
-      const interval = Math.max(MIN_INTERVAL, Math.min(MAX_INTERVAL, TARGET_MS / n));
+      if (!run.events.length) return;
+
+      // 1) 연속 동일 stage → 세그먼트로 묶기
+      const segments: { stage: StageId; events: RunEvent[] }[] = [];
+      for (const ev of run.events) {
+        const last = segments[segments.length - 1];
+        if (last && last.stage === ev.stage) last.events.push(ev);
+        else segments.push({ stage: ev.stage, events: [ev] });
+      }
+
+      // 2) 평탄화: step마다 '직전 대비 지연(delay)' + 세그먼트 끝 hold(부족한 노출시간 보충)
+      const steps: { ev: RunEvent; delay: number; holdAfter: number }[] = [];
+      for (const seg of segments) {
+        const evs = capSegment(seg.events);
+        evs.forEach((ev, idx) =>
+          steps.push({ ev, delay: idx === 0 ? STAGE_GAP : INTRA_GAP, holdAfter: 0 })
+        );
+        const innerTime = STAGE_GAP + (evs.length - 1) * INTRA_GAP;
+        const hold = STAGE_DWELL - innerTime;
+        if (hold > 0) steps[steps.length - 1].holdAfter = hold; // 짧은 단계는 마지막 줄에서 hold
+      }
+
+      // 3) 스케줄 실행 (delay = 직전 step 이후 대기, holdAfter = 단계 노출 보충)
       let i = 0;
-      const step = () => {
-        applyEvent(events[i], 'replay');
+      const tick = () => {
+        applyEvent(steps[i].ev, 'replay');
+        const cur = steps[i];
         i += 1;
-        if (i < n) timer.current = setTimeout(step, interval);
-        else finalize(run.totals);
+        if (i < steps.length) timer.current = setTimeout(tick, steps[i].delay + cur.holdAfter);
+        else timer.current = setTimeout(() => finalize(run.totals), cur.holdAfter + END_HOLD);
       };
-      timer.current = setTimeout(step, 200);
+      timer.current = setTimeout(tick, steps[0].delay);
     },
     [reset, applyEvent, finalize]
   );
